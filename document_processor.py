@@ -30,48 +30,93 @@ class ProcessedChunk:
     content: str
     metadata: Dict[str, Any]
     embedding: List[float]
+    version: int  # Added version field
 
-def preprocess_navigation(text: str) -> str:
-    """Preprocess markdown text by removing navigation sections and other unwanted patterns.
+def clean_section_name(title: str) -> str:
+    """Convert a section title to a URL-friendly anchor.
+    
+    Args:
+        title (str): The section title to convert
+        
+    Returns:
+        str: URL-friendly anchor name
+        
+    Examples:
+        "Installation" -> "installation"
+        "Invite / remove users" -> "invite-remove-users"
+        "Database Management" -> "database-management"
+    """
+    # Remove markdown header markers and any {#...} custom anchors
+    title = re.sub(r'\[#+\]\s*', '', title)
+    title = re.sub(r'\{#.*?\}', '', title)
+    
+    # Remove special characters and extra spaces
+    title = re.sub(r'[^a-zA-Z0-9\s-]', '', title)
+    
+    # Convert to lowercase and replace spaces with dashes
+    title = title.lower().strip()
+    title = re.sub(r'\s+', '-', title)
+    
+    return title
+
+def extract_section_anchor(header_path: str) -> str:
+    """Extract the last section from a header path to create an anchor.
+    
+    Args:
+        header_path (str): Full header path (e.g., "[#] Database management > [##] Installation")
+        
+    Returns:
+        str: Section anchor or empty string if no valid section found
+    """
+    if not header_path:
+        return ""
+        
+    # Get the last section from the header path
+    sections = header_path.split(" > ")
+    if sections:
+        last_section = sections[-1]
+        # Remove the header level indicator (e.g., "[##]")
+        last_section = re.sub(r'\[#+\]\s*', '', last_section)
+        # Clean the section title to create the anchor
+        return clean_section_name(last_section)
+    return ""
+
+def convert_path_to_url(file_path: str, header_path: str = "") -> tuple[str, int]:
+    """Convert a local file path to a full URL for the Odoo documentation and extract version.
 
     Args:
-        text (str): Markdown text to preprocess
+        file_path (str): Local file path to convert
+        header_path (str, optional): Header path for section anchors. Defaults to "".
 
     Returns:
-        str: Preprocessed markdown text
+        tuple[str, int]: Full URL for the documentation page and version number
     """
-    # Remove navigation sections
-    text = re.sub(r'##### On this page.*?(?=\n\n)', '', text, flags=re.DOTALL)
-    text = re.sub(r'### Navigation.*?(?=\n\n)', '', text, flags=re.DOTALL)
+    # Extract version from path
+    version_match = re.search(r'/versions/(\d+\.\d+)/', file_path)
+    if not version_match:
+        raise ValueError(f"Could not extract version from path: {file_path}")
     
-    # Remove file links
-    text = re.sub(r'\(file:.*?\)', '()', text)
+    version_str = version_match.group(1)
+    version = int(float(version_str) * 10)  # Convert "16.0" to 160, "17.0" to 170, etc.
     
-    # Remove unnecessary list sections
-    text = re.sub(r'\* \[.*?\]\(\)', '', text)
+    # Extract the path after the version number
+    path_match = re.search(r'/versions/\d+\.\d+/(.+?)\.md$', file_path)
+    if not path_match:
+        raise ValueError(f"Could not extract content path from: {file_path}")
     
-    # Clean up extra whitespace
-    text = re.sub(r'\n{3,}', '\n\n', text)
-
-    # Remove specific unwanted block at the top
-    text = re.sub(r'\[ !\[Odoo\]\(\)\s*docs \]\(\)\s*\[Try Odoo for FREE\]\(\)\s*EN\s*Odoo \d+\s*', '', text, flags=re.MULTILINE)
+    content_path = path_match.group(1)
+    # Remove 'content/' from the path if it exists
+    content_path = re.sub(r'^content/', '', content_path)
     
-    return text.strip()
-
-def clean_header_text(header: str) -> str:
-    """Clean up header text by removing markdown links and other patterns.
-
-    Args:
-        header (str): Header text to clean
-
-    Returns:
-        str: Cleaned header text
-    """
-    # Remove [¶]() pattern
-    header = re.sub(r'\s*\[¶\]\(\)', '', header)
-    # Remove any remaining markdown links if present
-    header = re.sub(r'\[(.*?)\]\(.*?\)', r'\1', header)
-    return header.strip()
+    base_url = f"https://www.odoo.com/documentation/{version_str}"
+    url = f"{base_url}/{content_path}.html"
+    
+    # Add section anchor if header path is provided
+    section_anchor = extract_section_anchor(header_path)
+    if section_anchor:
+        url = f"{url}#{section_anchor}"
+    
+    return url, version
 
 def create_header_path(metadata: Dict[str, str]) -> str:
     """Create a hierarchical header path from metadata.
@@ -87,8 +132,7 @@ def create_header_path(metadata: Dict[str, str]) -> str:
         key = f"Header {i}"
         if key in metadata and metadata[key]:
             header_level = "#" * i
-            cleaned_header = clean_header_text(metadata[key])
-            headers.append(f"[{header_level}] {cleaned_header}")
+            headers.append(f"[{header_level}] {metadata[key]}")
     
     return " > ".join(headers) if headers else ""
 
@@ -103,8 +147,6 @@ def chunk_markdown(text: str, chunk_size: int = 5000, chunk_overlap: int = 500) 
     Returns:
         List[Dict[str, Any]]: List of dictionaries containing content and metadata for each chunk
     """
-    cleaned_text = preprocess_navigation(text)
-    
     # Define headers to split on
     headers_to_split_on = [
         ("#", "Header 1"),
@@ -118,7 +160,7 @@ def chunk_markdown(text: str, chunk_size: int = 5000, chunk_overlap: int = 500) 
         headers_to_split_on=headers_to_split_on,
         strip_headers=False
     )
-    md_header_splits = markdown_splitter.split_text(cleaned_text)
+    md_header_splits = markdown_splitter.split_text(text)
     
     # Then split by size if needed
     text_splitter = RecursiveCharacterTextSplitter(
@@ -204,7 +246,7 @@ async def get_title_and_summary(chunk: Dict[str, Any], url: str) -> Dict[str, st
         Return a JSON object with 'summary' key containing a 1-2 sentence summary focusing on key concepts and information."""
         
         response = await openai_client.chat.completions.create(
-            model=os.getenv("LLM_MODEL", "gpt-4-turbo-preview"),
+            model=os.getenv("LLM_MODEL", "gpt-4o"),
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"Content:\n{chunk['content'][:2000]}..."}
@@ -251,46 +293,31 @@ async def get_embedding(text: str) -> List[float]:
             text = text[:8000] + "..."
             
         response = await openai_client.embeddings.create(
-            model="text-embedding-3-small",
+            model="text-embedding-3-large",
             input=text
         )
         return response.data[0].embedding
     except Exception as e:
         print(f"Error getting embedding: {e}")
-        return [0] * 1536
+        return [0] * 3072
 
-def convert_path_to_url(file_path: str) -> str:
-    """Convert a local file path to a full URL for the Odoo documentation.
-
-    Args:
-        file_path (str): Local file path to convert
-
-    Returns:
-        str: Full URL for the documentation page
-    """
-    relevant_path = re.sub(
-        r'.*/markdown/(.*)\.md$', 
-        r'\1', 
-        file_path
-    )
-    
-    base_url = "https://www.odoo.com/documentation/18.0/"
-    full_url = f"{base_url}{relevant_path}.html"
-    
-    return full_url
-
-async def process_chunk(chunk: Dict[str, Any], chunk_number: int, url: str) -> ProcessedChunk:
+async def process_chunk(chunk: Dict[str, Any], chunk_number: int, file_path: str) -> ProcessedChunk:
     """Process a chunk of markdown text into a ProcessedChunk object.
 
     Args:
         chunk (Dict[str, Any]): Dictionary containing content and metadata for a chunk
         chunk_number (int): Chunk number in the document
-        url (str): URL of the documentation source
+        file_path (str): Path to the markdown file
 
     Returns:
         ProcessedChunk: ProcessedChunk object containing extracted information
     """
-    documentation_url = convert_path_to_url(url)
+    # Get the header path from metadata
+    header_path = chunk["metadata"].get("header_path", "")
+    
+    # Pass the header path to convert_path_to_url
+    documentation_url, version = convert_path_to_url(file_path, header_path)
+    
     extracted = await get_title_and_summary(chunk, documentation_url)
     embedding = await get_embedding(chunk["content"])
     
@@ -298,7 +325,8 @@ async def process_chunk(chunk: Dict[str, Any], chunk_number: int, url: str) -> P
         "source": "markdown_file",
         "chunk_size": len(chunk["content"]),
         "processed_at": datetime.now(timezone.utc).isoformat(),
-        "filename": os.path.basename(url),
+        "filename": os.path.basename(file_path),
+        "version_str": f"{version/10:.1f}",  # Add version string to metadata
         **chunk["metadata"]  # Include original header metadata
     }
     
@@ -309,7 +337,8 @@ async def process_chunk(chunk: Dict[str, Any], chunk_number: int, url: str) -> P
         summary=extracted['summary'],
         content=chunk["content"],
         metadata=metadata,
-        embedding=embedding
+        embedding=embedding,
+        version=version
     )
 
 async def insert_chunk(chunk: ProcessedChunk):
@@ -329,10 +358,11 @@ async def insert_chunk(chunk: ProcessedChunk):
             "summary": chunk.summary,
             "content": chunk.content,
             "metadata": chunk.metadata,
-            "embedding": chunk.embedding
+            "embedding": chunk.embedding,
+            "version": chunk.version  # Added version field
         }
         result = supabase.table("odoo_docs").insert(data).execute()
-        print(f"Inserted chunk {chunk.chunk_number}: {chunk.title}")
+        print(f"Inserted chunk {chunk.chunk_number} (version {chunk.metadata['version_str']}): {chunk.title}")
         return result
     except Exception as e:
         print(f"Error inserting chunk: {e}")
@@ -368,31 +398,40 @@ async def process_markdown_file(file_path: str):
         print(f"Error processing file {file_path}: {e}")
         raise
 
-async def process_markdown_directory(directory_path: str):
-    """Process all markdown files in a directory.
+async def process_markdown_directory(base_directory: str):
+    """Process all markdown files in version directories.
 
     Args:
-        directory_path (str): Path to the directory containing markdown files
+        base_directory (str): Base path to the versions directory
     """
     try:
-        markdown_files = []
-        for root, _, files in os.walk(directory_path):
-            for file in files:
-                if file.endswith('.md'):
-                    markdown_files.append(os.path.join(root, file))
-        
-        print(f"Found {len(markdown_files)} markdown files")
-        
-        for file_path in markdown_files:
-            try:
-                await process_markdown_file(file_path)
-                print(f"Successfully processed {file_path}")
-            except Exception as e:
-                print(f"Error processing {file_path}: {e}")
+        # version_dirs = ['16.0', '17.0', '18.0']
+        version_dirs = ['16.0', '17.0']
+        for version in version_dirs:
+            version_path = os.path.join(base_directory, version)
+            if not os.path.exists(version_path):
+                print(f"Warning: Version directory {version_path} does not exist")
                 continue
                 
+            print(f"Processing version {version}")
+            markdown_files = []
+            for root, _, files in os.walk(version_path):
+                for file in files:
+                    if file.endswith('.md'):
+                        markdown_files.append(os.path.join(root, file))
+            
+            print(f"Found {len(markdown_files)} markdown files in version {version}")
+            
+            for file_path in markdown_files:
+                try:
+                    await process_markdown_file(file_path)
+                    print(f"Successfully processed {file_path}")
+                except Exception as e:
+                    print(f"Error processing {file_path}: {e}")
+                    continue
+                
     except Exception as e:
-        print(f"Error processing directory {directory_path}: {e}")
+        print(f"Error processing directory {base_directory}: {e}")
         raise
 
 # Example usage
@@ -400,16 +439,14 @@ if __name__ == "__main__":
     import sys
     
     if len(sys.argv) != 2:
-        print("Usage: python document_processor.py <path>")
-        print("Path can be either a single markdown file or a directory containing markdown files")
+        print("Usage: python document_processor.py <versions_directory>")
+        print("Example: python document_processor.py raw_data/markdown/versions")
         sys.exit(1)
         
-    path = sys.argv[1]
+    versions_dir = sys.argv[1]
     
-    if os.path.isfile(path):
-        asyncio.run(process_markdown_file(path))
-    elif os.path.isdir(path):
-        asyncio.run(process_markdown_directory(path))
-    else:
-        print(f"Error: {path} is neither a file nor a directory")
+    if not os.path.isdir(versions_dir):
+        print(f"Error: {versions_dir} is not a directory")
         sys.exit(1)
+        
+    asyncio.run(process_markdown_directory(versions_dir))

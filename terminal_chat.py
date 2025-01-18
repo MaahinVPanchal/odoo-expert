@@ -1,14 +1,12 @@
-from __future__ import annotations
-import asyncio
 import os
+import json
+import asyncio
 from typing import List, Dict
-from datetime import datetime
-import streamlit as st
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from supabase import create_client, Client
 
-# Load environment variables
 load_dotenv(override=True)
 
 # Initialize OpenAI and Supabase clients
@@ -33,13 +31,13 @@ async def get_embedding(text: str) -> List[float]:
             text = text[:8000] + "..."
             
         response = await openai_client.embeddings.create(
-            model="text-embedding-3-large",
+            model="text-embedding-3-large",  # Updated to match Streamlit version
             input=text
         )
         return response.data[0].embedding
     except Exception as e:
-        st.error(f"Error getting embedding: {e}")
-        return [0] * 3072
+        print(f"Error getting embedding: {e}")
+        return [0] * 3072  # Updated dimension for text-embedding-3-large
 
 async def retrieve_relevant_chunks(query: str, version: int, limit: int = 6) -> List[Dict]:
     """Retrieve relevant chunks based on embedding similarity and version.
@@ -54,17 +52,8 @@ async def retrieve_relevant_chunks(query: str, version: int, limit: int = 6) -> 
     """
     try:
         query_embedding = await get_embedding(query)
-        # Add version filter to the filter parameter
-        # result = supabase.rpc(
-        #     'match_odoo_docs',
-        #     {
-        #         'query_embedding': query_embedding,
-        #         'match_count': limit,
-        #         'filter': {'version': version}  # Directly use the integer version (e.g., 160)
-        #     }
-        # ).execute()
         result = supabase.rpc(
-            'search_odoo_docs',  # New optimized function name
+            'search_odoo_docs',
             {
                 'query_embedding': query_embedding,
                 'version_num': version,
@@ -73,31 +62,23 @@ async def retrieve_relevant_chunks(query: str, version: int, limit: int = 6) -> 
         ).execute()
             
         if not result.data:
-            st.warning("No matching documents found")
+            print("No matching documents found")
             return []
             
         return result.data[:limit]
     except Exception as e:
-        st.error(f"Error retrieving chunks: {e}")
         return []
 
 async def generate_response(query: str, context: str, conversation_history: List[Dict]) -> str:
-    """
-    Generates an AI response to a user query about Odoo development using provided context and conversation history.
+    """Generate streaming response from the AI model.
     
     Args:
-        query (str): The user's current question about Odoo development
-        context (str): Relevant documentation chunks to be used as context for answering the query
-        conversation_history (List[Dict]): List of previous conversation turns, where each dict contains
-            'user' and 'assistant' keys with their respective messages. Only the last 3 turns are used.
+        query (str): User's question
+        context (str): Relevant documentation chunks
+        conversation_history (List[Dict]): Previous conversation turns
     
     Returns:
-        str: The generated response from the AI model, structured with markdown formatting including
-            a direct answer and source references. Returns None if an error occurs.
-    
-    Raises:
-        Exception: Any errors during API communication or response generation are caught and 
-            displayed using streamlit's error function.
+        AsyncGenerator: Stream of response chunks
     """
     try:
         system_prompt = """You are an expert in Odoo development and architecture.
@@ -146,30 +127,21 @@ async def generate_response(query: str, context: str, conversation_history: List
         
         return response
     except Exception as e:
-        st.error(f"Error generating response: {e}")
+        print(f"Error generating response: {e}")
         return None
 
-def display_chat_message(role: str, content: str):
-    """Display chat message with role and content.
-
-    Args:
-        role (str): Role of the message (user or assistant)
-        content (str): Content of the message
-    """
-    with st.chat_message(role):
-        st.markdown(content)
-
-async def process_query(query: str, version: int):
+async def process_query(query: str, version: int, conversation_history: List[Dict]):
     """Process user query and generate response.
 
     Args:
         query (str): the question to process
         version (int): the Odoo version to filter
+        conversation_history (List[Dict]): conversation history
     """
     chunks = await retrieve_relevant_chunks(query, version)
     
     if not chunks:
-        st.error("No relevant information found.")
+        print("No relevant information found.")
         return
     
     # Prepare context with source information
@@ -185,74 +157,68 @@ async def process_query(query: str, version: int):
     
     context = "\n\n---\n\n".join(context_parts)
     
-    # Get conversation history from session state
-    conversation_history = st.session_state.get('conversation_history', [])
+    print("\nGenerating response...")
+    response = await generate_response(query, context, conversation_history)
     
-    # Show "Assistant is typing..." message
-    with st.chat_message("assistant"):
-        response_placeholder = st.empty()
-        response_placeholder.markdown("Generating response...")
-        
-        # Generate streaming response
-        response = await generate_response(query, context, conversation_history)
-        
-        if response:
-            full_response = ""
-            async for chunk in response:
-                if chunk.choices[0].delta.content:
-                    full_response += chunk.choices[0].delta.content
-                    response_placeholder.markdown(full_response)
-            
-            # Update conversation history
-            st.session_state.conversation_history.append({
-                "user": query,
-                "assistant": full_response,
-                "timestamp": datetime.now().isoformat()
-            })
+    if response:
+        full_response = ""
+        async for chunk in response:
+            if chunk.choices[0].delta.content:
+                content = chunk.choices[0].delta.content
+                print(content, end='', flush=True)
+                full_response += content
+        print("\n")
+        return full_response
+    return None
 
-async def main():
-    st.title("Odoo Documentation Assistant")
-    st.write("Ask any question about Odoo development and architecture.")
-
-    # Add version selector in the sidebar
-    version_options = {
+async def chat_mode():
+    """Enter chat mode to interact with the Odoo documentation chatbot."""
+    
+    print("\nWelcome to Odoo Documentation Assistant!")
+    print("Available commands:")
+    print("- 'exit': Quit the application")
+    print("- 'clear': Reset conversation history")
+    print("- 'version': Change Odoo version")
+    
+    conversation_history = []
+    version_map = {
         "16.0": 160,
         "17.0": 170,
         "18.0": 180
     }
-    selected_version = st.sidebar.selectbox(
-        "Select Odoo Version",
-        options=list(version_options.keys()),
-        format_func=lambda x: f"Version {x}",
-        index=2  # Default to 18.0
-    )
+    current_version = "18.0"  # Default version
     
-    # Convert string version to integer (e.g., "16.0" -> 160)
-    version_int = version_options[selected_version]
-
-    # Initialize conversation history in session state
-    if 'conversation_history' not in st.session_state:
-        st.session_state.conversation_history = []
-
-    # Display conversation history
-    for message in st.session_state.conversation_history:
-        display_chat_message("user", message["user"])
-        display_chat_message("assistant", message["assistant"])
-
-    # Chat input
-    user_input = st.chat_input("Ask a question about Odoo...")
-
-    if user_input:
-        # Display user message
-        display_chat_message("user", user_input)
+    while True:
+        command = input("\nYou (Current version: " + current_version + "): ").strip()
         
-        # Process query and display response with selected version
-        await process_query(user_input, version_int)
+        if command.lower() == 'exit':
+            break
+        elif command.lower() == 'clear':
+            conversation_history = []
+            print("Conversation history cleared.")
+            continue
+        elif command.lower() == 'version':
+            print("\nAvailable versions:", ", ".join(version_map.keys()))
+            new_version = input("Select version: ").strip()
+            if new_version in version_map:
+                current_version = new_version
+                print(f"Version changed to {new_version}")
+            else:
+                print("Invalid version. Using current version:", current_version)
+            continue
+        
+        response = await process_query(command, version_map[current_version], conversation_history)
+        
+        if response:
+            # Update conversation history
+            conversation_history.append({
+                "user": command,
+                "assistant": response,
+                "timestamp": datetime.now().isoformat()
+            })
 
-    # Add a button to clear conversation history
-    if st.button("Clear Conversation"):
-        st.session_state.conversation_history = []
-        st.rerun()
+async def main():
+    await chat_mode()
 
 if __name__ == "__main__":
     asyncio.run(main())
