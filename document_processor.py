@@ -293,13 +293,13 @@ async def get_embedding(text: str) -> List[float]:
             text = text[:8000] + "..."
             
         response = await openai_client.embeddings.create(
-            model="text-embedding-3-large",
+            model="text-embedding-3-small",
             input=text
         )
         return response.data[0].embedding
     except Exception as e:
         print(f"Error getting embedding: {e}")
-        return [0] * 3072
+        return [0] * 1536
 
 async def process_chunk(chunk: Dict[str, Any], chunk_number: int, file_path: str) -> ProcessedChunk:
     """Process a chunk of markdown text into a ProcessedChunk object.
@@ -405,8 +405,7 @@ async def process_markdown_directory(base_directory: str):
         base_directory (str): Base path to the versions directory
     """
     try:
-        # version_dirs = ['16.0', '17.0', '18.0']
-        version_dirs = ['16.0', '17.0']
+        version_dirs = ['16.0', '17.0', '18.0']
         for version in version_dirs:
             version_path = os.path.join(base_directory, version)
             if not os.path.exists(version_path):
