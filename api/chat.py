@@ -16,7 +16,7 @@ router = APIRouter()
 security = HTTPBearer()
 
 # Environment variables
-BEARER_TOKEN = os.getenv("BEARER_TOKEN", "").split(",")
+BEARER_TOKENS = os.getenv("BEARER_TOKENS", "").split(",")
 
 class ChatRequest(BaseModel):
     query: str
@@ -30,7 +30,7 @@ class ChatResponse(BaseModel):
 def verify_token(credentials: HTTPAuthorizationCredentials = Security(security)) -> bool:
     """Verify the API token."""
     token = credentials.credentials
-    if token not in BEARER_TOKEN:
+    if token not in BEARER_TOKENS:
         raise HTTPException(
             status_code=401,
             detail="Invalid API token"
