@@ -7,35 +7,18 @@ A comprehensive documentation processing and chat system that converts Odoo's do
 
 ## Features
 
-### Documentation Processing Pipeline
+### Core Functionality
 
-- Automated RST documentation fetching from Odoo's official repository
-- Smart RST to Markdown conversion with preprocessing
-- Intelligent document chunking and embedding generation
-- Multi-version support for Odoo documentation
+- Documentation Processing: Automated conversion of RST to Markdown with smart preprocessing
+- Semantic Search: Real-time semantic search across documentation versions
+- AI-Powered Chat: Context-aware responses with source citations
+- Multi-Version Support: Comprehensive support for Odoo versions 16.0, 17.0, and 18.0
 
+### Interface Options
 
-### Semantic Search & Chat Interface
-
-- Real-time semantic search across documentation
-- Version-specific document retrieval
-- AI-powered responses using ChatGPT
-- Conversation history management
-- Context-aware responses with source citations
-
-### REST API
-
-- Authentication via Bearer token
-- Chat endpoint for programmatic access
-- Version-specific querying
-- Conversation history support
-- Source document references in responses
-
-### Version Management
-
-- Support for Odoo versions 16.0, 17.0, and 18.0
-- Version-specific documentation processing
-- Easy version switching in chat interface
+- Web UI: Streamlit-based interface for interactive querying
+- REST API: Authenticated endpoints for programmatic access
+- CLI: Command-line interface for document processing and chat
 
 ## Prerequisites
 
@@ -50,8 +33,7 @@ A comprehensive documentation processing and chat system that converts Odoo's do
 ```text
 ├── LICENSE                   # License for the project
 ├── LICENSE-DOCS              # License for the documentation
-├── README.md                 # Project overview and instructions
-├── __init__.py               
+├── README.md                 # Project overview and instructions              
 ├── main.py                   # Main entry point for the application
 ├── pull_rawdata.sh           # Script to pull raw data
 ├── requirements.txt          # Project dependencies
@@ -201,3 +183,7 @@ Provide detailed information about your environment and the problem
 
 ## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+Thanks for the following contributors during the development of this project:
+
+- [Viet Din (Desdaemon)](https://github.com/Desdaemon): Giving me important suggestions on how to improve the performance.
