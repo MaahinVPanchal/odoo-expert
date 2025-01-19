@@ -31,7 +31,7 @@ async def get_embedding(text: str) -> List[float]:
             text = text[:8000] + "..."
             
         response = await openai_client.embeddings.create(
-            model="text-embedding-3-large",  # Updated to match Streamlit version
+            model="text-embedding-3-small",  # Updated to match Streamlit version
             input=text
         )
         return response.data[0].embedding

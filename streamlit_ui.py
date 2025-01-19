@@ -33,7 +33,7 @@ async def get_embedding(text: str) -> List[float]:
             text = text[:8000] + "..."
             
         response = await openai_client.embeddings.create(
-            model="text-embedding-3-large",
+            model="text-embedding-3-small",
             input=text
         )
         return response.data[0].embedding
@@ -54,15 +54,7 @@ async def retrieve_relevant_chunks(query: str, version: int, limit: int = 6) -> 
     """
     try:
         query_embedding = await get_embedding(query)
-        # Add version filter to the filter parameter
-        # result = supabase.rpc(
-        #     'match_odoo_docs',
-        #     {
-        #         'query_embedding': query_embedding,
-        #         'match_count': limit,
-        #         'filter': {'version': version}  # Directly use the integer version (e.g., 160)
-        #     }
-        # ).execute()
+
         result = supabase.rpc(
             'search_odoo_docs',  # New optimized function name
             {
@@ -116,8 +108,8 @@ async def generate_response(query: str, context: str, conversation_history: List
     [Your main answer here]
     
     **Sources Used:**
-    - Source 1: chunk['url']
-    - Source 2: chunk['url']
+    - Source 1: Title chunk['url']
+    - Source 2: Title chunk['url']
     - etc if needed
     """
         
@@ -139,7 +131,7 @@ async def generate_response(query: str, context: str, conversation_history: List
         })
         
         response = await openai_client.chat.completions.create(
-            model=os.getenv("LLM_MODEL", "gpt-4"),
+            model=os.getenv("LLM_MODEL", "gpt-4o"),
             messages=messages,
             stream=True
         )
