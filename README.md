@@ -71,8 +71,8 @@ A comprehensive documentation processing and chat system that converts Odoo's do
     │   └── services          # Core services and business logic
     ├── processing            # Document processing modules
     │   ├── __init__.py       
-    │   ├── document.py       # Document processing logic
-    │   └── markdown.py       # Markdown processing logic
+    │   ├── document_processor.py       # Document processing logic
+    │   └── markdown_converter.py       # Markdown processing logic
     ├── sqls                  # SQL scripts
     │   ├── create_table_schema.sql  # SQL script to create table schema
     │   ├── indexing_for_odoo_documents.sql  # SQL script for indexing documents
