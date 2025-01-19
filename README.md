@@ -86,6 +86,7 @@ Activate the related Python environment
     SUPABASE_URL=your_supabase_url
     SUPABASE_SERVICE_KEY=your_supabase_key
     LLM_MODEL=gpt-4o  # optional
+    BEARER_TOKEN=your_bearer_token
     ```
 
 ## Usage
@@ -136,6 +137,60 @@ Activate the related Python environment
     ```bash
     streamlit run streamlit_ui.py
     ```
+## API Endpoints
+
+The project provides a REST API for programmatic access to the documentation assistant.
+
+### Authentication
+
+All API endpoints require Bearer token authentication. Add your API token in the Authorization header:
+```bash
+Authorization: Bearer your-api-token
+```
+
+### Endpoints
+
+POST `/api/chat`
+Query the documentation and get AI-powered responses.
+
+Request body:
+```json
+{
+    "query": "string",        // The question about Odoo
+    "version": integer,       // Odoo version (160, 170, or 180)
+    "conversation_history": [ // Optional
+        {
+            "user": "string",
+            "assistant": "string"
+        }
+    ]
+}
+```
+
+Response:
+```json
+{
+    "answer": "string",       // AI-generated response
+    "sources": [              // Reference documents used
+        {
+            "url": "string",
+            "title": "string"
+        }
+    ]
+}
+```
+
+Example:
+```bash
+curl -X POST "http://localhost:8000/api/chat" \
+-H "Authorization: Bearer your-api-token" \
+-H "Content-Type: application/json" \
+-d '{
+    "query": "How do I install Odoo?",
+    "version": 180,
+    "conversation_history": []
+}'
+```
 
 ## Support
 If you encounter any issues or have questions, please:
