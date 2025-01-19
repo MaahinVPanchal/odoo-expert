@@ -42,23 +42,26 @@ A comprehensive documentation processing and chat system that converts Odoo's do
 
 ```text
 .
-├── pull_rawdata.sh        # Documentation fetching script
-├── rawdata2markdown.py    # RST to Markdown conversion
-├── document_processor.py  # Document processing and embedding
-├── streamlit_ui.py       # Chat interface
-├── terminal_chat.py      # Terminal chat interface
-├── requirements.txt      # Python dependencies
-├── .env                 # Environment variables
-└── raw_data/           # Documentation data
-    └── versions/       # Version-specific documentation
-        ├── 16.0/
-        ├── 17.0/
-        └── 18.0/
-    └── markdown/
-        └── versions/       # Converted markdown files
-            ├── 16.0/
-            ├── 17.0/
-            └── 18.0/
+├── __init__.py             
+├── api                     # Directory containing API-related modules
+│   ├── __init__.py         
+│   ├── chat.py             
+│   └── main.py             
+├── core                    # Directory containing core logic modules
+│   ├── __init__.py         
+│   └── chat_logic.py       # Module containing chat logic
+├── document_processor.py   # Script for processing documents
+├── pull_rawdata.sh         # Shell script to pull raw data
+├── raw_data                # Directory containing raw data
+│   ├── markdown            
+│   └── versions            
+├── rawdata2markdown.py     # Script to convert raw data to markdown
+├── requirements.txt        # File listing project dependencies
+├── sqls                    # Directory containing SQL scripts
+│   ├── indexing_for_odoo_documents.sql  
+│   └── search_odoo_docs.sql  
+├── streamlit_ui.py         # Script for the Streamlit UI
+└── terminal_chat.py        # Script for terminal-based chat functionality
 ```
 
 ## Installation
