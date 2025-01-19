@@ -34,8 +34,8 @@ class StreamlitUI:
         )
 
     def setup_page(self):
-        st.title("Odoo Documentation Assistant")
-        st.write("Ask any question about Odoo development and architecture.")
+        st.title("Odoo Expert")
+        st.write("Ask me anything about Odoo and I'll provide you with the best answers with references and citations!")
 
     def setup_sidebar(self):
         version_options = {

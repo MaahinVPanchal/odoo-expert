@@ -5,8 +5,8 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     # API Settings
     API_VERSION: str = "0.0.1"
-    API_TITLE: str = "Odoo Documentation Assistant API"
-    API_DESCRIPTION: str = "API for querying Odoo documentation with AI-powered responses"
+    API_TITLE: str = "Odoo Expert API"
+    API_DESCRIPTION: str = "API for querying Odoo documentation with RAG-powered responses"
     
     # OpenAI Settings
     OPENAI_API_KEY: str
