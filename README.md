@@ -23,6 +23,13 @@ A comprehensive documentation processing and chat system that converts Odoo's do
 - Conversation history management
 - Context-aware responses with source citations
 
+### REST API
+
+- Authentication via Bearer token
+- Chat endpoint for programmatic access
+- Version-specific querying
+- Conversation history support
+- Source document references in responses
 
 ### Version Management
 
