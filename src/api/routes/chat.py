@@ -3,7 +3,7 @@ from openai import AsyncOpenAI
 from supabase import Client, create_client
 from src.api.models.chat import ChatRequest, ChatResponse
 from src.api.dependencies.auth import verify_token
-from src.core.services.chat import ChatService
+from src.core.services.chat_service import ChatService
 from src.core.services.embedding import EmbeddingService
 from src.config.settings import settings
 

@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from src.core.services.embedding import EmbeddingService
 from src.utils.logging import logger
 from supabase import Client
-from .markdown import MarkdownConverter
+from .markdown_converter import MarkdownConverter
 from src.config.settings import settings
 
 from openai import AsyncOpenAI

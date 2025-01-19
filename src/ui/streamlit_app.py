@@ -9,7 +9,7 @@ sys.path.append(str(project_root))
 import asyncio
 import streamlit as st
 from datetime import datetime
-from src.core.services.chat import ChatService
+from src.core.services.chat_service import ChatService
 from src.core.services.embedding import EmbeddingService
 from src.config.settings import settings
 from src.utils.logging import logger
