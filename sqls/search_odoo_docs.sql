@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION search_odoo_docs(
-    query_embedding vector(3072),
+    query_embedding vector(1536),
     version_num integer,
     match_limit integer
 )
