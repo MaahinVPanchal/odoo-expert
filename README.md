@@ -48,27 +48,42 @@ A comprehensive documentation processing and chat system that converts Odoo's do
 ## Project Structure
 
 ```text
-.
-├── __init__.py             
-├── api                     # Directory containing API-related modules
-│   ├── __init__.py         
-│   ├── chat.py             
-│   └── main.py             
-├── core                    # Directory containing core logic modules
-│   ├── __init__.py         
-│   └── chat_logic.py       # Module containing chat logic
-├── document_processor.py   # Script for processing documents
-├── pull_rawdata.sh         # Shell script to pull raw data
-├── raw_data                # Directory containing raw data
-│   ├── markdown            
-│   └── versions            
-├── rawdata2markdown.py     # Script to convert raw data to markdown
-├── requirements.txt        # File listing project dependencies
-├── sqls                    # Directory containing SQL scripts
-│   ├── indexing_for_odoo_documents.sql  
-│   └── search_odoo_docs.sql  
-├── streamlit_ui.py         # Script for the Streamlit UI
-└── terminal_chat.py        # Script for terminal-based chat functionality
+├── LICENSE                   # License for the project
+├── LICENSE-DOCS              # License for the documentation
+├── README.md                 # Project overview and instructions
+├── __init__.py               
+├── main.py                   # Main entry point for the application
+├── pull_rawdata.sh           # Script to pull raw data
+├── requirements.txt          # Project dependencies
+└── src                       # Source code directory
+    ├── api                   # API-related modules
+    │   ├── __init__.py       
+    │   ├── app.py            # Main API application
+    │   ├── dependencies      # Dependency management
+    │   ├── models            # Data models for API
+    │   └── routes            # API route definitions
+    ├── config                # Configuration files
+    │   ├── __init__.py       
+    │   └── settings.py       
+    ├── core                  # Core logic modules
+    │   ├── __init__.py       
+    │   ├── models            # Core data models
+    │   └── services          # Core services and business logic
+    ├── processing            # Document processing modules
+    │   ├── __init__.py       
+    │   ├── document.py       # Document processing logic
+    │   └── markdown.py       # Markdown processing logic
+    ├── sqls                  # SQL scripts
+    │   ├── create_table_schema.sql  # SQL script to create table schema
+    │   ├── indexing_for_odoo_documents.sql  # SQL script for indexing documents
+    │   └── search_odoo_docs.sql  # SQL script for searching documents
+    ├── ui                    # User interface modules
+    │   ├── __init__.py       
+    │   └── streamlit_app.py  # Streamlit application for UI
+    └── utils                 # Utility modules
+        ├── __init__.py       
+        ├── errors.py         # Error handling utilities
+        └── logging.py        # Logging utilities
 ```
 
 ## Installation
@@ -94,6 +109,7 @@ Activate the related Python environment
     SUPABASE_SERVICE_KEY=your_supabase_key
     LLM_MODEL=gpt-4o  # optional
     BEARER_TOKEN=your_bearer_token
+    CORS_ORIGINS=comma_separated_origins
     ```
 
 ## Usage
@@ -105,45 +121,22 @@ Activate the related Python environment
     ```
 2. Convert RST to Markdown:
     ```bash
-    python rawdata2markdown.py
+    python main.py process-raw --raw-dir raw_data --output-dir raw_data/markdown
     ```
-3. Set up database:
-    ```sql
-    CREATE OR REPLACE FUNCTION search_odoo_docs(
-        query_embedding vector(1536),
-        version_num integer,
-        match_limit integer
-    )
-    RETURNS TABLE (
-        url character varying,
-        title character varying,
-        content text,
-        similarity double precision
-    ) 
-    LANGUAGE plpgsql
-    AS $$
-    BEGIN
-        RETURN QUERY
-        SELECT 
-            d.url,
-            d.title,
-            d.content,
-            (1 - (d.embedding <=> query_embedding)) AS similarity
-        FROM odoo_docs d
-        WHERE d.version = version_num
-        ORDER BY d.embedding <=> query_embedding
-        LIMIT match_limit;
-    END;
-    $$;
-    ```
+3. Set up database: Run `src/sqls/create_table_schema.sql` to create the table and `src/sqls/search_odoo_docs.sql` to create the search function.
 4. Process and embed documents:
     ```bash
-    python document_processor.py raw_data/markdown/versions
+    python main.py process-docs raw_data/markdown
     ```
 5. Launch the chat interface:
     ```bash
-    streamlit run streamlit_ui.py
+    python main.py serve --mode ui
     ```
+6. Launch the API:
+    ```bash
+    python main.py serve --mode api
+    ```
+    
 ## API Endpoints
 
 The project provides a REST API for programmatic access to the documentation assistant.
