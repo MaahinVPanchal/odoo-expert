@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from supabase import create_client, Client
 
+from core.chat_logic import retrieve_relevant_chunks, generate_response
+
 # Load environment variables
 load_dotenv(override=True)
 
