@@ -1,0 +1,6 @@
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+PYTHONPATH=/app
+
+# Run every day at midnight
+0 0 * * * cd /app && ./pull_rawdata.sh >> /app/logs/cron.log 2>&1 && python main.py check-updates >> /app/logs/cron.log 2>&1

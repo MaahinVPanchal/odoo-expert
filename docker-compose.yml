@@ -1,0 +1,33 @@
+services:
+  odoo-expert:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"  # API port
+      - "8585:8501"  # UI port
+    env_file:
+      - .env
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_BASE=${OPENAI_API_BASE}
+      - SUPABASE_URL=http://host.docker.internal:54321
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - SUPABASE_TABLE=${SUPABASE_TABLE}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4}
+      - BEARER_TOKEN=${BEARER_TOKEN}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+    volumes:
+      - ./raw_data:/app/raw_data
+      - ./markdown:/app/markdown
+      - logs_volume:/app/logs:rw
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "python", "docker/healthcheck.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  logs_volume:
