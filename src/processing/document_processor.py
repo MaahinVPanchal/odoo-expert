@@ -2,7 +2,7 @@ import asyncio
 import json
 import re
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Dict, Any, Set
 from datetime import datetime, timezone
 from src.core.services.embedding import EmbeddingService
 from src.utils.logging import logger
