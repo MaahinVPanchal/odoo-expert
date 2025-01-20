@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS odoo_docs (
     chunk_number integer not null,
     version integer not null,
     title varchar not null,
-    summary varchar not null,
     content text not null,
     metadata jsonb not null default '{}'::jsonb,
     embedding vector(1536),  -- Changed from 1536 to 3072

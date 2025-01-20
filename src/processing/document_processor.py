@@ -1,7 +1,5 @@
 import asyncio
-import os
 import re
-import json
 from pathlib import Path
 from typing import List, Dict, Any
 from datetime import datetime, timezone
@@ -11,12 +9,6 @@ from supabase import Client
 from .markdown_converter import MarkdownConverter
 from src.config.settings import settings
 
-from openai import AsyncOpenAI
-
-openai_client = AsyncOpenAI(
-        api_key=settings.OPENAI_API_KEY,
-        base_url=settings.OPENAI_API_BASE
-    )
 
 # Get table name from settings
 TABLE_NAME = settings.SUPABASE_TABLE
@@ -48,8 +40,8 @@ class DocumentProcessor:
                 header_path
             )
             
-            # Extract title and summary
-            extracted = await self._get_title_and_summary(chunk, documentation_url)
+            # Extract title
+            title = self.extract_title_from_chunk(chunk)
             
             # Get embedding
             embedding = await self.embedding_service.get_embedding(chunk["content"])
@@ -68,8 +60,7 @@ class DocumentProcessor:
             return await self._insert_chunk({
                 "url": documentation_url,
                 "chunk_number": chunk_number,
-                "title": extracted['title'],
-                "summary": extracted['summary'],
+                "title": title,
                 "content": chunk["content"],
                 "metadata": metadata,
                 "embedding": embedding,
@@ -138,57 +129,6 @@ class DocumentProcessor:
             logger.error(f"Error inserting chunk: {e}")
             raise
     
-    async def _get_title_and_summary(self, chunk: Dict[str, Any], url: str) -> Dict[str, str]:
-        """
-        Get title and summary from a chunk of text using OpenAI.
-
-        Args:
-            chunk (Dict[str, Any]): Dictionary containing content and metadata for a chunk.
-            url (str): URL of the documentation source.
-
-        Returns:
-            Dict[str, str]: Dictionary containing title and summary.
-        """
-        try:
-            title = self.extract_title_from_chunk(chunk)
-
-            system_prompt = """You are an AI that generates concise, informative summaries of documentation chunks.
-            Return a JSON object with 'summary' key containing a 1-2 sentence summary focusing on key concepts and information."""
-
-            # Assuming `openai_client` is already initialized
-            response = await openai_client.chat.completions.create(
-                model=os.getenv("LLM_MODEL", "gpt-4o"),
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"Content:\n{chunk['content'][:2000]}..."}
-                ]
-            )
-
-            response_content = response.choices[0].message.content
-
-            if response_content.startswith("```") and response_content.endswith("```"):
-                response_content = response_content.strip("```").strip("json").strip()
-
-            try:
-                summary_data = json.loads(response_content)
-            except json.JSONDecodeError as e:
-                print(f"Error decoding JSON: {e}")
-                return {
-                    "title": title,
-                    "summary": "Error generating summary"
-                }
-
-            return {
-                "title": title,
-                "summary": summary_data["summary"]
-            }
-        except Exception as e:
-            print(f"Error getting title and summary: {e}")
-            return {
-                "title": self.extract_title_from_chunk(chunk),
-                "summary": "Error generating summary"
-            }
-    
     def extract_title_from_chunk(self, chunk: Dict[str, Any]) -> str:
         """Extract a title from a chunk of text.
 
@@ -245,8 +185,8 @@ class DocumentProcessor:
             filename = Path(file_path).name
             version_str = f"{version/10:.1f}"
             
-            # Extract title and summary
-            extracted = await self._get_title_and_summary(chunk, documentation_url)
+            # Extract title
+            title = self.extract_title_from_chunk(chunk)
             
             # Get embedding
             embedding = await self.embedding_service.get_embedding(chunk["content"])
@@ -304,8 +244,7 @@ class DocumentProcessor:
             record_data = {
                 "url": documentation_url,
                 "chunk_number": chunk_number,
-                "title": extracted['title'],
-                "summary": extracted['summary'],
+                "title": title,
                 "content": chunk["content"],
                 "metadata": metadata,
                 "embedding": embedding,
@@ -320,7 +259,7 @@ class DocumentProcessor:
             logger.info(
                 f"Processed chunk {chunk_number} "
                 f"(version {metadata['version_str']}): "
-                f"{extracted['title']}"
+                f"{title}"
             )
             
             return result
