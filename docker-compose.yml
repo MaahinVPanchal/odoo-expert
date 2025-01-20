@@ -1,8 +1,6 @@
 services:
   odoo-expert:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: mfydev/odoo-expert:latest
     ports:
       - "8000:8000"  # API port
       - "8585:8501"  # UI port
@@ -11,7 +9,7 @@ services:
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_API_BASE=${OPENAI_API_BASE}
-      - SUPABASE_URL=http://host.docker.internal:54321
+      - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
       - SUPABASE_TABLE=${SUPABASE_TABLE}
       - LLM_MODEL=${LLM_MODEL:-gpt-4}
@@ -22,7 +20,7 @@ services:
       - ./markdown:/app/markdown
       - logs_volume:/app/logs:rw
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - ${SUPABASE_URL:+"host.docker.internal:host-gateway"}
     healthcheck:
       test: ["CMD", "python", "docker/healthcheck.py"]
       interval: 30s

@@ -31,8 +31,9 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /var/cache/apt/*
 
-# Create directories
-RUN mkdir -p raw_data markdown logs /var/log/supervisor
+# Create directories with proper permissions
+RUN mkdir -p raw_data markdown logs /var/log/supervisor && \
+    chmod -R 755 logs /var/log/supervisor
 
 # Copy application files
 COPY main.py pull_rawdata.sh ./
@@ -49,13 +50,18 @@ RUN chmod 0644 /etc/cron.d/updater-cron && \
     chmod +x docker/entrypoint.sh && \
     chmod +x docker/healthcheck.py && \
     touch /var/log/cron.log && \
+    chmod 0666 /var/log/cron.log && \
     mkdir -p /app/logs && \
     touch /app/logs/ui.log /app/logs/api.log /app/logs/updater.log \
-          /app/logs/ui-error.log /app/logs/api-error.log /app/logs/updater-error.log
+          /app/logs/ui-error.log /app/logs/api-error.log /app/logs/updater-error.log && \
+    chmod 0666 /app/logs/*.log
 
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000 8501
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python docker/healthcheck.py
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
