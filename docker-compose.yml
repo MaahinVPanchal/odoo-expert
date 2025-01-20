@@ -3,7 +3,7 @@ services:
     image: mfydev/odoo-expert:latest
     ports:
       - "8000:8000"  # API port
-      - "8585:8501"  # UI port
+      - "8501:8501"  # UI port
     env_file:
       - .env
     environment:
