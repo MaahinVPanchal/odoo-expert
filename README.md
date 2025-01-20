@@ -6,6 +6,21 @@ RAG-Powered Odoo Documentation Assistant
 
 A comprehensive documentation processing and chat system that converts Odoo's documentation to a searchable knowledge base with an AI-powered chat interface. This tool supports multiple Odoo versions (16.0, 17.0, 18.0) and provides semantic search capabilities powered by OpenAI embeddings.
 
+## Initial Intention Behind This Project
+
+The project was conceived with the vision of enhancing the Odoo documentation experience. The goal was to create a system similar to Perplexity or Google, where users could receive AI-powered answers directly within the documentation website, complete with proper source links. This eliminates the need for users to manually navigate through complex documentation structures.
+
+## How it works?
+
+![How it works](images/howitworks.png)
+
+The system operates through a pipeline of data processing and serving steps:
+
+1. **Documentation Pulling**: Fetches raw documentation from Odoo's repositories
+2. **Format Conversion**: Converts RST files to Markdown for better AI processing
+3. **Embedding Generation**: Processes Markdown files and stores them with embeddings
+4. **Interface Layer**: Provides both UI and API access to the processed knowledge base
+
 ## Features
 
 ### Core Functionality
@@ -29,46 +44,6 @@ A comprehensive documentation processing and chat system that converts Odoo's do
 - Supabase: Both selfhosted version and hosted version are supported
 - OpenAI API access
 - Git
-
-## Project Structure
-
-```text
-├── LICENSE                   # License for the project
-├── LICENSE-DOCS              # License for the documentation
-├── README.md                 # Project overview and instructions              
-├── main.py                   # Main entry point for the application
-├── pull_rawdata.sh           # Script to pull raw data
-├── requirements.txt          # Project dependencies
-└── src                       # Source code directory
-    ├── api                   # API-related modules
-    │   ├── __init__.py       
-    │   ├── app.py            # Main API application
-    │   ├── dependencies      # Dependency management
-    │   ├── models            # Data models for API
-    │   └── routes            # API route definitions
-    ├── config                # Configuration files
-    │   ├── __init__.py       
-    │   └── settings.py       
-    ├── core                  # Core logic modules
-    │   ├── __init__.py       
-    │   ├── models            # Core data models
-    │   └── services          # Core services and business logic
-    ├── processing            # Document processing modules
-    │   ├── __init__.py       
-    │   ├── document_processor.py       # Document processing logic
-    │   └── markdown_converter.py       # Markdown processing logic
-    ├── sqls                  # SQL scripts
-    │   ├── create_table_schema.sql  # SQL script to create table schema
-    │   ├── indexing_for_odoo_documents.sql  # SQL script for indexing documents
-    │   └── search_odoo_docs.sql  # SQL script for searching documents
-    ├── ui                    # User interface modules
-    │   ├── __init__.py       
-    │   └── streamlit_app.py  # Streamlit application for UI
-    └── utils                 # Utility modules
-        ├── __init__.py       
-        ├── errors.py         # Error handling utilities
-        └── logging.py        # Logging utilities
-```
 
 ## Installation
 
@@ -188,6 +163,36 @@ curl -X POST "http://localhost:8000/api/chat" \
     "conversation_history": []
 }'
 ```
+
+## Future Roadmap
+
+1. **Containerization**: 
+   - Implement Docker support for easy deployment
+   - Make the system fully self-hostable
+   - Provide simple deployment options for organizations
+
+2. **Automated Updates**:
+   - Implement automated documentation pulling
+   - Develop more efficient update detection mechanisms
+   - Reduce manual intervention in keeping content current
+
+3. **Extended Capabilities**:
+   - Support for additional documentation sources
+   - Enhanced embedding and search algorithms
+   - Improved context understanding and response generation
+
+## What are the potential applications?
+
+While initially focused on Odoo documentation, the system's architecture makes it highly adaptable for various documentation management scenarios:
+
+- Internal knowledge base systems
+- Technical documentation portals
+- Customer support systems
+- Educational content management
+- API documentation assistance
+
+The underlying RAG (Retrieval-Augmented Generation) architecture can be extended to process and serve any structured documentation, making it valuable for organizations looking to enhance their documentation accessibility and searchability.
+
 
 ## Support
 If you encounter any issues or have questions, please:
