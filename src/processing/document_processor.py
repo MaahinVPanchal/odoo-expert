@@ -34,8 +34,8 @@ class DocumentProcessor:
             # Get the header path from metadata
             header_path = chunk["metadata"].get("header_path", "")
             
-            # Get document URL
-            documentation_url = self.markdown_converter.convert_path_to_url(
+            # Get document URL - only use the URL part, not the version
+            documentation_url, _ = self.markdown_converter.convert_path_to_url(
                 file_path,
                 header_path
             )
@@ -58,7 +58,7 @@ class DocumentProcessor:
             
             # Insert into database
             return await self._insert_chunk({
-                "url": documentation_url,
+                "url": documentation_url,  # Now only contains the URL string
                 "chunk_number": chunk_number,
                 "title": title,
                 "content": chunk["content"],
@@ -175,8 +175,8 @@ class DocumentProcessor:
     ):
         """Process a chunk and update if it exists, otherwise insert."""
         try:
-            # Get document URL and version
-            documentation_url, doc_version = self.markdown_converter.convert_path_to_url(
+            # Get document URL - only use the URL part, not the version
+            documentation_url, _ = self.markdown_converter.convert_path_to_url(
                 file_path, 
                 chunk["metadata"].get("header_path", "")
             )
@@ -242,7 +242,7 @@ class DocumentProcessor:
             
             # Prepare record data
             record_data = {
-                "url": documentation_url,
+                "url": documentation_url,  # Now only contains the URL string
                 "chunk_number": chunk_number,
                 "title": title,
                 "content": chunk["content"],
