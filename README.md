@@ -124,8 +124,17 @@ Activate the related Python environment
     # Finally, start the services
     docker compose up -d
     ```
-7. Access the UI at port 8501 and the API at port 8000
-8. Docker compose will automatically pull the latest changes and update the system once a day, or you can manually update by running the following command:
+7. Database indexing: Run the following command to create the search index by using Supabase's SQL editor.
+    ```bash
+    SET maintenance_work_mem = '128MB';
+    CREATE INDEX idx_odoo_docs_version ON odoo_docs (version);
+
+    CREATE INDEX idx_odoo_docs_embedding ON odoo_docs
+    USING ivfflat (embedding vector_cosine_ops)
+    WITH (lists = 328);
+    ```
+8. Access the UI at port 8501 and the API at port 8000
+9. Docker compose will automatically pull the latest changes and update the system once a day, or you can manually update by running the following command:
     ```bash
     docker compose run --rm odoo-expert python main.py check-updates
     ```
@@ -154,8 +163,17 @@ Activate the related Python environment
     ```bash
     python main.py serve --mode api
     ```
-7. Access the UI at port 8501 and the API at port 8000
-8. To sync with the latest changes in the Odoo documentation, run the following command:
+7. Database indexing: Run the following command to create the search index by using Supabase's SQL editor.
+    ```bash
+    SET maintenance_work_mem = '128MB';
+    CREATE INDEX idx_odoo_docs_version ON odoo_docs (version);
+
+    CREATE INDEX idx_odoo_docs_embedding ON odoo_docs
+    USING ivfflat (embedding vector_cosine_ops)
+    WITH (lists = 328);
+    ```
+8. Access the UI at port 8501 and the API at port 8000
+9. To sync with the latest changes in the Odoo documentation, run the following command:
     ```bash
     python main.py check-updates
     ```
