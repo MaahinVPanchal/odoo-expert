@@ -5,7 +5,7 @@ from src.config.settings import settings
 
 def setup_logger():
     """Configure and return a logger instance."""
-    logger = logging.getLogger("odoo_assistant")
+    logger = logging.getLogger("odoo_expert")
     
     # Only add handlers if they haven't been added already
     if not logger.handlers:
