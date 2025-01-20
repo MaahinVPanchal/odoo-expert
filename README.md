@@ -231,3 +231,9 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 Thanks for the following contributors during the development of this project:
 
 - [Viet Din (Desdaemon)](https://github.com/Desdaemon): Giving me important suggestions on how to improve the performance.
+
+## License
+
+This project is licensed under [Apache License 2.0](./LICENSE): No warranty is provided. You can use this project for any purpose, but you must include the original copyright and license.
+
+Extra license [CC-BY-SA 4.0](./LICENSE-DOCS) to align with the original Odoo/Documentation license.
