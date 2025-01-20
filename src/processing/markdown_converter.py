@@ -20,14 +20,22 @@ class MarkdownConverter:
             ("####", "Header 4"),
         ]
 
-    def process_directory(self, base_dir: str):
-        """Process all RST files in the given directory and its subdirectories."""
+    def process_directory(self, base_dir: str, output_dir: str = None):
+        """Process all RST files in the given directory and its subdirectories.
+        
+        Args:
+            base_dir (str): Source directory containing RST files
+            output_dir (str, optional): Target directory for markdown files.
+                If not provided, defaults to base_dir/markdown
+        """
         base_path = Path(base_dir)
+        # If output_dir is not provided, use the default path
+        output_path = Path(output_dir if output_dir is not None else base_path / 'markdown')
         versions = ['16.0', '17.0', '18.0']
         
         for version in versions:
             source_dir = base_path / 'versions' / version / 'content'
-            target_dir = base_path / 'markdown' / 'versions' / version / 'content'
+            target_dir = output_path / 'versions' / version / 'content'
             
             if not source_dir.exists():
                 logger.warning(f"Source directory {source_dir} does not exist")

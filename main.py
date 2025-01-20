@@ -1,4 +1,3 @@
-# main.py
 import uvicorn
 import argparse
 import asyncio
@@ -7,6 +6,8 @@ from pathlib import Path
 from src.api.app import app
 from src.processing.document_processor import DocumentProcessor
 from src.processing.markdown_converter import MarkdownConverter
+from src.processing.file_tracker import FileTracker
+from src.processing.incremental_processor import IncrementalProcessor
 from src.core.services.embedding import EmbeddingService
 from src.config.settings import settings
 from openai import AsyncOpenAI
@@ -30,10 +31,36 @@ async def process_raw_data(raw_dir: str, output_dir: str):
     """Process raw RST files to markdown and then to documents"""
     # Step 1: Convert RST to Markdown
     converter = MarkdownConverter()
-    converter.process_directory(raw_dir)
+    converter.process_directory(raw_dir, output_dir)
     
     # Step 2: Process markdown files to documents
     await process_documents(output_dir)
+
+async def process_incremental_updates(base_dir: str):
+    """Process only changed documentation files."""
+    openai_client = AsyncOpenAI(
+        api_key=settings.OPENAI_API_KEY,
+        base_url=settings.OPENAI_API_BASE
+    )
+    
+    supabase_client = create_client(
+        settings.SUPABASE_URL,
+        settings.SUPABASE_SERVICE_KEY
+    )
+    
+    embedding_service = EmbeddingService(openai_client)
+    document_processor = DocumentProcessor(supabase_client, embedding_service)
+    markdown_converter = MarkdownConverter()
+    file_tracker = FileTracker(supabase_client, base_dir)
+    
+    processor = IncrementalProcessor(
+        document_processor=document_processor,
+        file_tracker=file_tracker,
+        markdown_converter=markdown_converter
+    )
+    
+    await processor.process_all_versions()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Odoo Documentation Assistant')
