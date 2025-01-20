@@ -124,7 +124,7 @@ class DocumentProcessor:
 
     async def _insert_chunk(self, chunk_data: Dict[str, Any]):
         try:
-            result = self.supabase_client.table("test").insert(chunk_data).execute()
+            result = self.supabase_client.table("odoo_docs").insert(chunk_data).execute()
             logger.info(
                 f"Inserted chunk {chunk_data['chunk_number']} "
                 f"(version {chunk_data['metadata']['version_str']}): "
@@ -232,11 +232,15 @@ class DocumentProcessor:
     ):
         """Process a chunk and update if it exists, otherwise insert."""
         try:
-            # Get document URL and extract just the URL part
-            documentation_url, _ = self.markdown_converter.convert_path_to_url(
+            # Get document URL and version
+            documentation_url, doc_version = self.markdown_converter.convert_path_to_url(
                 file_path, 
                 chunk["metadata"].get("header_path", "")
             )
+            
+            # Extract filename for matching
+            filename = Path(file_path).name
+            version_str = f"{version/10:.1f}"
             
             # Extract title and summary
             extracted = await self._get_title_and_summary(chunk, documentation_url)
@@ -249,28 +253,53 @@ class DocumentProcessor:
                 "source": "markdown_file",
                 "chunk_size": len(chunk["content"]),
                 "processed_at": datetime.now(timezone.utc).isoformat(),
-                "filename": Path(file_path).name,
-                "version_str": f"{version/10:.1f}",
+                "filename": filename,
+                "version_str": version_str,
                 **chunk["metadata"]
             }
             
-            # Delete existing record first
+            # Try to find and delete existing records
             try:
-                self.supabase_client.table("odoo_docs")\
-                    .delete()\
-                    .eq("url", documentation_url)\
-                    .eq("chunk_number", chunk_number)\
-                    .eq("version", version)\
+                logger.info(f"Searching for existing records for file: {filename}, version: {version_str}, chunk: {chunk_number}")
+                    
+                records_to_delete = []
+                    
+                # Search by metadata to catch any potential duplicates
+                metadata_result = self.supabase_client.table("odoo_docs")\
+                    .select("*")\
+                    .filter("metadata->>filename", "eq", filename)\
+                    .filter("metadata->>version_str", "eq", version_str)\
                     .execute()
+                    
+                if metadata_result.data:
+                    # Add any new IDs not already in the list
+                    new_ids = [r["id"] for r in metadata_result.data if r["id"] not in records_to_delete]
+                    records_to_delete.extend(new_ids)
+                    logger.info(f"Found {len(new_ids)} additional records by metadata matching")
                 
-                # Add a small delay after deletion
-                await asyncio.sleep(0.5)
+                if records_to_delete:
+                    # Delete all found records
+                    logger.info(f"Attempting to delete {len(records_to_delete)} records")
+                    delete_result = self.supabase_client.table("odoo_docs")\
+                        .delete()\
+                        .in_("id", records_to_delete)\
+                        .execute()
+                    
+                    logger.info(f"Successfully deleted {len(delete_result.data)} records")
+                    
+                    # Add a delay after deletion
+                    await asyncio.sleep(1)
+                    
+                else:
+                    logger.info("No existing records found to delete")
+                
             except Exception as e:
-                logger.warning(f"Error during deletion (may be normal if record doesn't exist): {e}")
+                logger.warning(f"Delete operation failed: {e}")
+                raise
             
             # Prepare record data
             record_data = {
-                "url": documentation_url,  # Use just the URL string
+                "url": documentation_url,
                 "chunk_number": chunk_number,
                 "title": extracted['title'],
                 "summary": extracted['summary'],
