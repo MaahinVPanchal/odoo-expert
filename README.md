@@ -14,6 +14,7 @@ A comprehensive documentation processing and chat system that converts Odoo's do
 - Semantic Search: Real-time semantic search across documentation versions
 - AI-Powered Chat: Context-aware responses with source citations
 - Multi-Version Support: Comprehensive support for Odoo versions 16.0, 17.0, and 18.0
+- Always updated: Efficiently detect and process documentation updates.
 
 ### Interface Options
 
@@ -120,6 +121,19 @@ Activate the related Python environment
     python main.py serve --mode api
     ```
     
+## Update Process
+
+To sync with the latest changes in the Odoo documentation, run the following command:
+```bash
+python main.py check-updates
+```
+
+This command will:
+1. Scan RST files for changes across all supported Odoo versions
+2. Convert modified RST files to markdown
+3. Update the embeddings database for changed content
+4. Maintain a local cache to track file changes
+
 ## API Endpoints
 
 The project provides a REST API for programmatic access to the documentation assistant.
