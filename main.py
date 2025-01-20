@@ -6,8 +6,6 @@ from pathlib import Path
 from src.api.app import app
 from src.processing.document_processor import DocumentProcessor
 from src.processing.markdown_converter import MarkdownConverter
-from src.processing.file_tracker import FileTracker
-from src.processing.incremental_processor import IncrementalProcessor
 from src.core.services.embedding import EmbeddingService
 from src.config.settings import settings
 from openai import AsyncOpenAI
