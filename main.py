@@ -27,14 +27,21 @@ async def process_documents(base_dir: str):
     processor = DocumentProcessor(supabase_client, embedding_service)
     await processor.process_directory(base_dir)
 
-async def process_raw_data(raw_dir: str, output_dir: str):
-    """Process raw RST files to markdown and then to documents"""
+async def process_raw_data(raw_dir: str, output_dir: str, process_docs: bool = False):
+    """Process raw RST files to markdown and optionally process documents
+    
+    Args:
+        raw_dir (str): Directory containing raw RST files
+        output_dir (str): Output directory for markdown files
+        process_docs (bool): Whether to process documents after conversion
+    """
     # Step 1: Convert RST to Markdown
     converter = MarkdownConverter()
     converter.process_directory(raw_dir, output_dir)
     
-    # Step 2: Process markdown files to documents
-    await process_documents(output_dir)
+    # Step 2: Process markdown files to documents (optional)
+    if process_docs:
+        await process_documents(output_dir)
 
 async def process_incremental_updates(base_dir: str):
     """Process only changed documentation files."""
@@ -77,8 +84,10 @@ if __name__ == "__main__":
     process_raw_parser = subparsers.add_parser('process-raw', help='Process raw RST files')
     process_raw_parser.add_argument('--raw-dir', default='raw_data',
                                   help='Directory containing raw RST files')
-    process_raw_parser.add_argument('--output-dir', default='raw_data/markdown',
+    process_raw_parser.add_argument('--output-dir', default='markdown',
                                   help='Directory for processed markdown files')
+    process_raw_parser.add_argument('--process-docs', action='store_true',
+                                  help='Process documents after conversion')
     
     process_docs_parser = subparsers.add_parser('process-docs', help='Process markdown documents')
     process_docs_parser.add_argument('dir', help='Directory containing markdown files to process')
@@ -91,7 +100,7 @@ if __name__ == "__main__":
         elif args.mode == 'ui':
             subprocess.run(["streamlit", "run", "src/ui/streamlit_app.py"])
     elif args.command == 'process-raw':
-        asyncio.run(process_raw_data(args.raw_dir, args.output_dir))
+        asyncio.run(process_raw_data(args.raw_dir, args.output_dir, args.process_docs))
     elif args.command == 'process-docs':
         asyncio.run(process_documents(args.dir))
     else:

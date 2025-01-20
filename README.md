@@ -104,12 +104,12 @@ Activate the related Python environment
     ```
 2. Convert RST to Markdown:
     ```bash
-    python main.py process-raw --raw-dir raw_data --output-dir raw_data/markdown
+    python main.py process-raw --raw-dir ./raw_data --output-dir ./markdown
     ```
 3. Set up database: Run `src/sqls/create_table_schema.sql` to create the table and `src/sqls/search_odoo_docs.sql` to create the search function.
 4. Process and embed documents:
     ```bash
-    python main.py process-docs raw_data/markdown
+    python main.py process-docs ./markdown
     ```
 5. Launch the chat interface:
     ```bash
