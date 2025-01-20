@@ -43,31 +43,6 @@ async def process_raw_data(raw_dir: str, output_dir: str, process_docs: bool = F
     if process_docs:
         await process_documents(output_dir)
 
-async def process_incremental_updates(base_dir: str):
-    """Process only changed documentation files."""
-    openai_client = AsyncOpenAI(
-        api_key=settings.OPENAI_API_KEY,
-        base_url=settings.OPENAI_API_BASE
-    )
-    
-    supabase_client = create_client(
-        settings.SUPABASE_URL,
-        settings.SUPABASE_SERVICE_KEY
-    )
-    
-    embedding_service = EmbeddingService(openai_client)
-    document_processor = DocumentProcessor(supabase_client, embedding_service)
-    markdown_converter = MarkdownConverter()
-    file_tracker = FileTracker(supabase_client, base_dir)
-    
-    processor = IncrementalProcessor(
-        document_processor=document_processor,
-        file_tracker=file_tracker,
-        markdown_converter=markdown_converter
-    )
-    
-    await processor.process_all_versions()
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Odoo Documentation Assistant')
