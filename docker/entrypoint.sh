@@ -18,26 +18,9 @@ if [ "$1" = "updater" ]; then
     log "Starting cron service..."
     service cron start || true
     
-    # Run initial update
-    log "Starting initial documentation pull..."
-    ./pull_rawdata.sh 2>&1 | while IFS= read -r line; do
-        log "[pull_rawdata] $line"
-    done
-    
-    # Process initial files
-    log "Processing all documentation files..."
-    python main.py process-raw --raw-dir ./raw_data --output-dir ./markdown --process-docs 2>&1 | while IFS= read -r line; do
-        log "[process-raw] $line"
-    done
-    
-    # Run initial check-updates
-    log "Running initial update check..."
-    python main.py check-updates 2>&1 | while IFS= read -r line; do
-        log "[check-updates] $line"
-    done
-    
-    # Monitor logs but with proper timestamp and labeling
-    log "Entering monitoring mode..."
+    # Monitor logs with proper timestamp and labeling
+    log "Entering monitoring mode for updates..."
+    # Monitor both cron and check-updates logs
     tail -f /app/logs/cron.log | while read line; do
         log "[cron] $line"
     done
