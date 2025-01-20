@@ -176,3 +176,4 @@ html/
 markdown/
 raw_data/
 bak/
+.file_cache.json

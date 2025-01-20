@@ -222,3 +222,119 @@ class DocumentProcessor:
         if len(first_line) > 100:
             return first_line[:97] + "..."
         return first_line
+    
+    async def process_chunk_with_update(
+        self,
+        chunk: Dict[str, Any],
+        chunk_number: int,
+        file_path: str,
+        version: int
+    ):
+        """Process a chunk and update if it exists, otherwise insert."""
+        try:
+            # Get document URL and extract just the URL part
+            documentation_url, _ = self.markdown_converter.convert_path_to_url(
+                file_path, 
+                chunk["metadata"].get("header_path", "")
+            )
+            
+            # Extract title and summary
+            extracted = await self._get_title_and_summary(chunk, documentation_url)
+            
+            # Get embedding
+            embedding = await self.embedding_service.get_embedding(chunk["content"])
+            
+            # Prepare metadata
+            metadata = {
+                "source": "markdown_file",
+                "chunk_size": len(chunk["content"]),
+                "processed_at": datetime.now(timezone.utc).isoformat(),
+                "filename": Path(file_path).name,
+                "version_str": f"{version/10:.1f}",
+                **chunk["metadata"]
+            }
+            
+            # Delete existing record first
+            try:
+                self.supabase_client.table("odoo_docs")\
+                    .delete()\
+                    .eq("url", documentation_url)\
+                    .eq("chunk_number", chunk_number)\
+                    .eq("version", version)\
+                    .execute()
+                
+                # Add a small delay after deletion
+                await asyncio.sleep(0.5)
+            except Exception as e:
+                logger.warning(f"Error during deletion (may be normal if record doesn't exist): {e}")
+            
+            # Prepare record data
+            record_data = {
+                "url": documentation_url,  # Use just the URL string
+                "chunk_number": chunk_number,
+                "title": extracted['title'],
+                "summary": extracted['summary'],
+                "content": chunk["content"],
+                "metadata": metadata,
+                "embedding": embedding,
+                "version": version
+            }
+            
+            # Insert new record
+            result = self.supabase_client.table("odoo_docs")\
+                .insert(record_data)\
+                .execute()
+            
+            logger.info(
+                f"Processed chunk {chunk_number} "
+                f"(version {metadata['version_str']}): "
+                f"{extracted['title']}"
+            )
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error processing chunk: {e}")
+            raise
+
+    async def _delete_existing_record(
+        self,
+        url: str,
+        chunk_number: int,
+        version: int
+    ) -> None:
+        """Delete an existing record if it exists."""
+        try:
+            # Execute delete operation
+            self.supabase_client.table("odoo_docs")\
+                .delete()\
+                .eq("url", url)\
+                .eq("chunk_number", chunk_number)\
+                .eq("version", version)\
+                .execute()
+            
+            # Add a small delay after deletion
+            await asyncio.sleep(0.5)
+            
+            logger.debug(f"Deleted existing record for URL: {url}, chunk: {chunk_number}, version: {version}")
+        except Exception as e:
+            raise Exception(f"Error in delete operation: {e}")
+
+    async def process_file_with_update(self, file_path: str, version: int):
+        """Process a markdown file and update existing records if they exist."""
+        try:
+            logger.info(f"Processing file with update: {file_path}")
+            
+            # Read and chunk the markdown file
+            chunks = self.markdown_converter.chunk_markdown(file_path)
+            logger.info(f"Split into {len(chunks)} chunks")
+            
+            # Process chunks sequentially to avoid race conditions
+            for i, chunk in enumerate(chunks):
+                await self.process_chunk_with_update(chunk, i, file_path, version)
+            
+            logger.info(f"Successfully processed {file_path}")
+            
+        except Exception as e:
+            logger.error(f"Error processing file {file_path}: {e}")
+            raise
