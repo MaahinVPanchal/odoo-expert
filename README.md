@@ -89,6 +89,7 @@ Activate the related Python environment
     OPENAI_API_BASE=your_api_base_url
     SUPABASE_URL=your_supabase_url
     SUPABASE_SERVICE_KEY=your_supabase_key
+    SUPABASE_TABLE=your_supabase_table_name
     LLM_MODEL=gpt-4o  # optional
     BEARER_TOKEN=your_bearer_token
     CORS_ORIGINS=comma_separated_origins

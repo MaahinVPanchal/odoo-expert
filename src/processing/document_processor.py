@@ -18,6 +18,9 @@ openai_client = AsyncOpenAI(
         base_url=settings.OPENAI_API_BASE
     )
 
+# Get table name from settings
+TABLE_NAME = settings.SUPABASE_TABLE
+
 class DocumentProcessor:
     def __init__(
         self, 
@@ -124,7 +127,7 @@ class DocumentProcessor:
 
     async def _insert_chunk(self, chunk_data: Dict[str, Any]):
         try:
-            result = self.supabase_client.table("odoo_docs").insert(chunk_data).execute()
+            result = self.supabase_client.table(TABLE_NAME).insert(chunk_data).execute()
             logger.info(
                 f"Inserted chunk {chunk_data['chunk_number']} "
                 f"(version {chunk_data['metadata']['version_str']}): "
@@ -265,7 +268,7 @@ class DocumentProcessor:
                 records_to_delete = []
                     
                 # Search by metadata to catch any potential duplicates
-                metadata_result = self.supabase_client.table("odoo_docs")\
+                metadata_result = self.supabase_client.table(TABLE_NAME)\
                     .select("*")\
                     .filter("metadata->>filename", "eq", filename)\
                     .filter("metadata->>version_str", "eq", version_str)\
@@ -280,7 +283,7 @@ class DocumentProcessor:
                 if records_to_delete:
                     # Delete all found records
                     logger.info(f"Attempting to delete {len(records_to_delete)} records")
-                    delete_result = self.supabase_client.table("odoo_docs")\
+                    delete_result = self.supabase_client.table(TABLE_NAME)\
                         .delete()\
                         .in_("id", records_to_delete)\
                         .execute()
@@ -310,7 +313,7 @@ class DocumentProcessor:
             }
             
             # Insert new record
-            result = self.supabase_client.table("odoo_docs")\
+            result = self.supabase_client.table(TABLE_NAME)\
                 .insert(record_data)\
                 .execute()
             
@@ -335,7 +338,7 @@ class DocumentProcessor:
         """Delete an existing record if it exists."""
         try:
             # Execute delete operation
-            self.supabase_client.table("odoo_docs")\
+            self.supabase_client.table(TABLE_NAME)\
                 .delete()\
                 .eq("url", url)\
                 .eq("chunk_number", chunk_number)\

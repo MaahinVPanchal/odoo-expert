@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     # Supabase Settings
     SUPABASE_URL: str
     SUPABASE_SERVICE_KEY: str
+    SUPABASE_TABLE: str
     
     # Security
     BEARER_TOKEN: str = ""
