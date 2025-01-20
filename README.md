@@ -204,7 +204,7 @@ curl -X POST "http://localhost:8000/api/chat" \
    - Enhanced embedding and search algorithms
    - Improved context understanding and response generation
 
-## What are the potential applications?
+## What Are the Potential Applications?
 
 While initially focused on Odoo documentation, the system's architecture makes it highly adaptable for various documentation management scenarios:
 
