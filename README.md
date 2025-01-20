@@ -97,6 +97,41 @@ Activate the related Python environment
 
 ## Usage
 
+### Docker Compose Install
+
+1. Git clone the repo
+2. Set up environment variables in the `.env` file
+   ```bash
+    cp .env.example .env
+    ```
+3. Set up the .env file with the correct values.
+4. Run the following command:
+    ```bash
+    docker-compose up -d
+    ```
+5. Set up database: Run `src/sqls/create_table_schema.sql` to create the table and `src/sqls/search_odoo_docs.sql` to create the search function by using Supabase's SQL editor.
+6. Pull the raw data and write to your supabase table:
+    ```bash
+    # Pull documentation
+    docker compose run --rm odoo-expert ./pull_rawdata.sh
+
+    # Convert RST to Markdown
+    docker compose run --rm odoo-expert python main.py process-raw --raw-dir ./raw_data --output-dir ./markdown
+
+    # Process documents
+    docker compose run --rm odoo-expert python main.py process-docs ./markdown
+
+    # Finally, start the services
+    docker compose up -d
+    ```
+7. Access the UI at port 8501 and the API at port 8000
+8. Docker compose will automatically pull the latest changes and update the system once a day, or you can manually update by running the following command:
+    ```bash
+    docker compose run --rm odoo-expert python main.py check-updates
+    ```
+
+### Source Install
+
 1. Pull Odoo documentation:
     ```bash
     chmod +x pull_rawdata.sh
@@ -106,7 +141,7 @@ Activate the related Python environment
     ```bash
     python main.py process-raw --raw-dir ./raw_data --output-dir ./markdown
     ```
-3. Set up database: Run `src/sqls/create_table_schema.sql` to create the table and `src/sqls/search_odoo_docs.sql` to create the search function.
+3. Set up database: Run `src/sqls/create_table_schema.sql` to create the table and `src/sqls/search_odoo_docs.sql` to create the search function by using Supabase's SQL editor.
 4. Process and embed documents:
     ```bash
     python main.py process-docs ./markdown
@@ -119,13 +154,11 @@ Activate the related Python environment
     ```bash
     python main.py serve --mode api
     ```
-    
-## Update Process
-
-To sync with the latest changes in the Odoo documentation, run the following command:
-```bash
-python main.py check-updates
-```
+7. Access the UI at port 8501 and the API at port 8000
+8. To sync with the latest changes in the Odoo documentation, run the following command:
+    ```bash
+    python main.py check-updates
+    ```
 
 This command will:
 1. Scan RST files for changes across all supported Odoo versions
