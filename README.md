@@ -97,6 +97,8 @@ Activate the related Python environment
 
 ## Usage
 
+Assuming Supabase table name is `odoo_docs`. If you have a different table name, please update the table name in the following SQL commands.
+
 ### Docker Compose Install
 
 1. Git clone the repo
