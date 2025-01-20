@@ -12,7 +12,30 @@ The project was conceived with the vision of enhancing the Odoo documentation ex
 
 ## How it works?
 
-![How it works](images/howitworks.png)
+```mermaid
+graph TD
+    A[Odoo Documentation] -->|pull_rawdata.sh| B[Raw Data]
+    B -->|process-raw| C[Markdown Files]
+    C -->|process-docs| D[(Database with Embeddings)]
+    D -->|serve --mode ui| E[Streamlit UI]
+    D -->|serve --mode api| F[REST API]
+    
+    subgraph "Data Processing Pipeline"
+        B
+        C
+        D
+    end
+    
+    subgraph "Interface Layer"
+        E
+        F
+    end
+
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style D fill:#bbf,stroke:#333,stroke-width:2px
+    style E fill:#bfb,stroke:#333,stroke-width:2px
+    style F fill:#bfb,stroke:#333,stroke-width:2px
+```
 
 The system operates through a pipeline of data processing and serving steps:
 
