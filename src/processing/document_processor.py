@@ -1,4 +1,5 @@
 import asyncio
+import json
 import re
 from pathlib import Path
 from typing import List, Dict, Any
@@ -22,6 +23,23 @@ class DocumentProcessor:
         self.supabase_client = supabase_client
         self.embedding_service = embedding_service
         self.markdown_converter = MarkdownConverter()
+        self.progress_file = Path("processing_progress.json")
+    
+    def _load_progress(self) -> Dict[str, Set[str]]:
+        """Load processing progress from file."""
+        if self.progress_file.exists():
+            with open(self.progress_file, 'r') as f:
+                progress = json.load(f)
+                # Convert lists back to sets
+                return {k: set(v) for k, v in progress.items()}
+        return {}
+
+    def _save_progress(self, progress: Dict[str, Set[str]]):
+        """Save processing progress to file."""
+        # Convert sets to lists for JSON serialization
+        progress_json = {k: list(v) for k, v in progress.items()}
+        with open(self.progress_file, 'w') as f:
+            json.dump(progress_json, f)
 
     async def process_chunk(
         self,
@@ -72,6 +90,7 @@ class DocumentProcessor:
             raise
 
     async def process_file(self, file_path: str, version: int):
+        """Process individual file with chunk tracking."""
         try:
             logger.info(f"Processing file: {file_path}")
             
@@ -79,12 +98,20 @@ class DocumentProcessor:
             chunks = self.markdown_converter.chunk_markdown(file_path)
             logger.info(f"Split into {len(chunks)} chunks")
             
-            # Process all chunks
-            tasks = [
-                self.process_chunk(chunk, i, file_path, version)
-                for i, chunk in enumerate(chunks)
-            ]
-            await asyncio.gather(*tasks)
+            # Process chunks with retries
+            for i, chunk in enumerate(chunks):
+                max_retries = 3
+                retry_delay = 1
+                
+                for attempt in range(max_retries):
+                    try:
+                        await self.process_chunk(chunk, i, file_path, version)
+                        break
+                    except Exception as e:
+                        if attempt == max_retries - 1:
+                            raise
+                        logger.warning(f"Retry {attempt + 1}/{max_retries} for chunk {i} due to: {e}")
+                        await asyncio.sleep(retry_delay * (attempt + 1))
             
             logger.info(f"Successfully processed {file_path}")
             
@@ -93,28 +120,52 @@ class DocumentProcessor:
             raise
 
     async def process_directory(self, base_directory: str):
+        """Process directory with progress tracking."""
+        progress = self._load_progress()
+        
         try:
             version_dirs = ['16.0', '17.0', '18.0']
             for version_str in version_dirs:
-                version = int(float(version_str) * 10)  # Convert "16.0" to 160
-                version_path = Path(base_directory) / "versions" /  version_str
+                version = int(float(version_str) * 10)
+                version_path = Path(base_directory) / "versions" / version_str
                 
                 if not version_path.exists():
                     logger.warning(f"Version directory {version_path} does not exist")
                     continue
                 
+                # Initialize progress tracking for this version if not exists
+                if version_str not in progress:
+                    progress[version_str] = set()
+                
                 logger.info(f"Processing version {version_str}")
                 
-                # Process all markdown files in version directory
+                # Get all markdown files
                 markdown_files = list(version_path.rglob("*.md"))
                 logger.info(f"Found {len(markdown_files)} markdown files")
                 
+                # Process unprocessed files
                 for file_path in markdown_files:
-                    await self.process_file(str(file_path), version)
+                    file_str = str(file_path)
+                    if file_str in progress[version_str]:
+                        logger.info(f"Skipping already processed file: {file_str}")
+                        continue
                     
+                    try:
+                        await self.process_file(file_str, version)
+                        progress[version_str].add(file_str)
+                        self._save_progress(progress)
+                        logger.info(f"Successfully processed and saved progress for {file_str}")
+                    except Exception as e:
+                        logger.error(f"Error processing file {file_str}: {e}")
+                        # Don't save progress for failed file
+                        raise
+                        
         except Exception as e:
             logger.error(f"Error processing directory {base_directory}: {e}")
             raise
+        finally:
+            # Ensure progress is saved even if there's an error
+            self._save_progress(progress)
 
     async def _insert_chunk(self, chunk_data: Dict[str, Any]):
         try:
