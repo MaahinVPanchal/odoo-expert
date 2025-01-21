@@ -110,7 +110,7 @@ Assuming Supabase table name is `odoo_docs`. If you have a different table name,
     docker compose run --rm odoo-expert python main.py process-docs ./markdown
     ```
 6. Database indexing: Run the following command to create the search index by using Supabase's SQL editor.
-    ```bash
+    ```sql
     SET maintenance_work_mem = '128MB';
     CREATE INDEX idx_odoo_docs_version ON odoo_docs (version);
 
@@ -149,7 +149,7 @@ Assuming Supabase table name is `odoo_docs`. If you have a different table name,
     python main.py serve --mode api
     ```
 7. Database indexing: Run the following command to create the search index by using Supabase's SQL editor.
-    ```bash
+    ```sql
     SET maintenance_work_mem = '128MB';
     CREATE INDEX idx_odoo_docs_version ON odoo_docs (version);
 
