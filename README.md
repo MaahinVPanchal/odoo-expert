@@ -220,20 +220,8 @@ curl -X POST "http://localhost:8000/api/chat" \
 
 ## Future Roadmap
 
-1. **Containerization**: 
-   - Implement Docker support for easy deployment
-   - Make the system fully self-hostable
-   - Provide simple deployment options for organizations
-
-2. **Automated Updates**:
-   - Implement automated documentation pulling
-   - Develop more efficient update detection mechanisms
-   - Reduce manual intervention in keeping content current
-
-3. **Extended Capabilities**:
-   - Support for additional documentation sources
-   - Enhanced embedding and search algorithms
-   - Improved context understanding and response generation
+1. Allow set versions in the env and run the pipe with those versions automatically.
+2. Add more API endpoints for more advanced features, like streaming chat.
 
 ## What Are the Potential Applications?
 
