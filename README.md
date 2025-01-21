@@ -3,6 +3,7 @@ RAG-Powered Odoo Documentation Assistant
 
 > ⚠️ PLEASE NOTE: This project is in ALPHA stage
 > This is an early release that is still under heavy development. Breaking changes can and will happen at any time without prior notice. The API, database schema, and core functionality may change significantly between versions. While we welcome testing and feedback, this version is not recommended for production use.
+> This project is not sponsored or endrosed by Odoo S.A. or Odoo Inc. yet. I am developing this project as a personal project with the intention of helping the Odoo community on my own.
 
 A comprehensive documentation processing and chat system that converts Odoo's documentation to a searchable knowledge base with an AI-powered chat interface. This tool supports multiple Odoo versions (16.0, 17.0, 18.0) and provides semantic search capabilities powered by OpenAI embeddings.
 
@@ -78,18 +79,24 @@ Assuming Supabase table name is `odoo_docs`. If you have a different table name,
 
 ### Docker Compose Install
 
-1. Git clone the repo
-2. Set up environment variables in the `.env` file
+1. Download the [docker-compose.yml](./docker-compose.yml) file to your local machine.
+2. Set up environment variables in the `.env` file by using the `.env.example` file as a template.
    ```bash
-    cp .env.example .env
-    ```
-3. Set up the .env file with the correct values.
-4. Run the following command:
+    OPENAI_API_KEY=your_openai_api_key
+    OPENAI_API_BASE=https://api.openai.com/v1
+    SUPABASE_SERVICE_KEY=your_supabase_service_key
+    SUPABASE_URL=your_supabase_url
+    SUPABASE_TABLE=your_supabase_table_name
+    LLM_MODEL=gpt-4o
+    BEARER_TOKEN=comma_separated_bearer_tokens
+    CORS_ORIGINS=comma_separated_cors_origins
+   ```
+3. Run the following command:
     ```bash
     docker-compose up -d
     ```
-5. Set up database: Run `src/sqls/create_table_schema.sql` to create the table and `src/sqls/search_odoo_docs.sql` to create the search function by using Supabase's SQL editor.
-6. Pull the raw data and write to your supabase table:
+4. Set up database: Run `src/sqls/create_table_schema.sql` to create the table and `src/sqls/search_odoo_docs.sql` to create the search function by using Supabase's SQL editor.
+5. Pull the raw data and write to your supabase table:
     ```bash
     # Pull documentation
     docker compose run --rm odoo-expert ./pull_rawdata.sh
@@ -99,11 +106,8 @@ Assuming Supabase table name is `odoo_docs`. If you have a different table name,
 
     # Process documents
     docker compose run --rm odoo-expert python main.py process-docs ./markdown
-
-    # Finally, start the services
-    docker compose up -d
     ```
-7. Database indexing: Run the following command to create the search index by using Supabase's SQL editor.
+6. Database indexing: Run the following command to create the search index by using Supabase's SQL editor.
     ```bash
     SET maintenance_work_mem = '128MB';
     CREATE INDEX idx_odoo_docs_version ON odoo_docs (version);
@@ -112,8 +116,8 @@ Assuming Supabase table name is `odoo_docs`. If you have a different table name,
     USING ivfflat (embedding vector_cosine_ops)
     WITH (lists = 328);
     ```
-8. Access the UI at port 8501 and the API at port 8000
-9. Docker compose will automatically pull the latest changes and update the system once a day, or you can manually update by running the following command:
+7. Access the UI at port 8501 and the API at port 8000
+8. Docker compose will automatically pull the latest changes and update the system once a day, or you can manually update by running the following command:
     ```bash
     docker compose run --rm odoo-expert python main.py check-updates
     ```
