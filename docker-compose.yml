@@ -3,7 +3,7 @@ services:
     image: mfydev/odoo-expert:latest
     ports:
       - "8000:8000"  # API port
-      - "8501:8501"  # UI port
+      - "8585:8501"  # UI port
     env_file:
       - .env
     environment:
@@ -20,7 +20,7 @@ services:
       - ./markdown:/app/markdown
       - logs_volume:/app/logs:rw
     extra_hosts:
-      - ${SUPABASE_URL:+"host.docker.internal:host-gateway"}
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD", "python", "docker/healthcheck.py"]
       interval: 30s
