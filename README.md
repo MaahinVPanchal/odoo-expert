@@ -68,34 +68,14 @@ The system operates through a pipeline of data processing and serving steps:
 - OpenAI API access
 - Git
 
-## Installation
+## Prerequisites
 
-Activate the related Python environment
+- Docker and Docker Compose
+- Supabase: Both selfhosted version and hosted version are supported
+- OpenAI API access
+- Git
 
-1. Install dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
-2. [Install Pandoc](https://pandoc.org/installing.html) (if not already installed)
-3. [Get Open AI API Key](https://platform.openai.com/settings/organization/api-keys)
-4. Create a Supabase table
-5. Set up environment variables:
-    ```bash
-    cp .env.example .env
-    ```
-    Set the following variables:
-    ```bash
-    OPENAI_API_KEY=your_openai_key
-    OPENAI_API_BASE=your_api_base_url
-    SUPABASE_URL=your_supabase_url
-    SUPABASE_SERVICE_KEY=your_supabase_key
-    SUPABASE_TABLE=your_supabase_table_name
-    LLM_MODEL=gpt-4o  # optional
-    BEARER_TOKEN=your_bearer_token
-    CORS_ORIGINS=comma_separated_origins
-    ```
-
-## Usage
+## Installation & Usage
 
 Assuming Supabase table name is `odoo_docs`. If you have a different table name, please update the table name in the following SQL commands.
 
