@@ -5,15 +5,32 @@ import urllib.error
 import subprocess
 import os
 
-def check_service(port):
+def check_service(port, path=None):
+    """Check if a service is running on the specified port.
+    
+    Args:
+        port (int): The port number to check
+        path (str, optional): The path to check. Defaults to None.
+    """
     try:
-        url = f"http://localhost:{port}"
+        # For API service (port 8000), check the OpenAPI docs endpoint
+        if port == 8000:
+            url = f"http://localhost:{port}/docs"
+        # For Streamlit (port 8501), check the root path
+        elif port == 8501:
+            url = f"http://localhost:{port}"
+        else:
+            url = f"http://localhost:{port}"
+            if path:
+                url = f"{url}{path}"
+                
         urllib.request.urlopen(url, timeout=5)
         return True
     except urllib.error.URLError:
         return False
 
 def check_supervisor():
+    """Check if supervisor processes are running."""
     try:
         result = subprocess.run(
             ["supervisorctl", "status"], 
