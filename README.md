@@ -62,18 +62,15 @@ The system operates through a pipeline of data processing and serving steps:
 
 ## Prerequisites
 
-- Python 3.7 or higher
-- Pandoc 2.19 or higher
-- Supabase: Both selfhosted version and hosted version are supported
-- OpenAI API access
-- Git
-
-## Prerequisites
-
 - Docker and Docker Compose
 - Supabase: Both selfhosted version and hosted version are supported
 - OpenAI API access
 - Git
+
+if you want to do source install, you need to install the following dependencies:
+
+- Python 3.10+
+- Pandoc
 
 ## Installation & Usage
 
