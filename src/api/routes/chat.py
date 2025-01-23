@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from openai import AsyncOpenAI
 from supabase import Client, create_client
 from src.api.models.chat import ChatRequest, ChatResponse
@@ -66,6 +67,49 @@ async def chat_endpoint(
             answer=response,
             sources=sources
         )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+@router.post("/stream")
+async def stream_endpoint(
+    request: ChatRequest,
+    authenticated: bool = Depends(verify_token),
+    chat_service: ChatService = Depends(get_services)
+):
+    try:
+        # Retrieve relevant chunks
+        chunks = await chat_service.retrieve_relevant_chunks(
+            request.query, 
+            request.version
+        )
+        
+        if not chunks:
+            raise HTTPException(
+                status_code=404,
+                detail="No relevant documentation found"
+            )
+        
+        # Prepare context and sources
+        context, sources = chat_service.prepare_context(chunks)
+        
+        # Generate streaming response
+        stream = await chat_service.generate_response(
+            query=request.query,
+            context=context,
+            conversation_history=request.conversation_history,
+            stream=True
+        )
+        
+        async def generate():
+            async for chunk in stream:
+                if chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+        
+        return StreamingResponse(generate(), media_type="text/event-stream")
         
     except Exception as e:
         raise HTTPException(

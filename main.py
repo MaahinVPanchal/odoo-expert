@@ -14,7 +14,11 @@ from supabase import create_client
 from src.utils.logging import logger
 
 async def process_documents(base_dir: str):
-    """Process markdown documents to embeddings"""
+    """Process markdown documents to embeddings
+
+    Args:
+        base_dir (str): _description_
+    """
     openai_client = AsyncOpenAI(
         api_key=settings.OPENAI_API_KEY,
         base_url=settings.OPENAI_API_BASE
@@ -44,7 +48,15 @@ async def process_raw_data(raw_dir: str, output_dir: str, process_docs: bool = F
         await process_documents(output_dir)
 
 async def check_updates(raw_dir: str, markdown_dir: str):
-    """Check for updates in raw data and process changed files."""
+    """Check for updates in raw data and process changed files.
+
+    Args:
+        raw_dir (str): Raw data directory
+        markdown_dir (str): Markdown data directory
+
+    Returns:
+        Added, modified, removed files
+    """
     openai_client = AsyncOpenAI(
         api_key=settings.OPENAI_API_KEY,
         base_url=settings.OPENAI_API_BASE
@@ -76,6 +88,7 @@ async def check_updates(raw_dir: str, markdown_dir: str):
     return added, modified, removed
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser(description='Odoo Documentation Assistant')
     subparsers = parser.add_subparsers(dest='command', help='Commands')
     
