@@ -224,6 +224,38 @@ curl -X POST "http://localhost:8000/api/chat" \
 }'
 ```
 
+POST `/api/stream`
+Query the documentation and get AI-powered responses in streaming format.
+
+Request body:
+```json
+{
+    "query": "string",        // The question about Odoo
+    "version": integer,       // Odoo version (160, 170, or 180)
+    "conversation_history": [ // Optional
+        {
+            "user": "string",
+            "assistant": "string"
+        }
+    ]
+}
+```
+
+Response:
+Stream of text chunks (text/event-stream content type)
+
+Example:
+```bash
+curl -X POST "http://localhost:8000/api/stream" \
+-H "Authorization: Bearer your-api-token" \
+-H "Content-Type: application/json" \
+-d '{
+    "query": "How do I install Odoo?",
+    "version": 180,
+    "conversation_history": []
+}'
+```
+
 ## Future Roadmap
 
 1. Allow set versions in the env and run the pipe with those versions automatically.
