@@ -1,7 +1,10 @@
 # Odoo Expert
 RAG-Powered Odoo Documentation Assistant
 
-Demo Video: https://fanyangmeng.blog/introducing-odoo-expert/
+Integrating Odoo Expert into Odoo Official Documentation Website Demo Video:
+https://fanyangmeng.blog/introducing-odoo-expert-streaming-api-integration/
+
+Initial Version Demo Video: https://fanyangmeng.blog/introducing-odoo-expert/
 
 > ⚠️ PLEASE NOTE: This project is in ALPHA stage
 > This is an early release that is still under heavy development. Breaking changes can and will happen at any time without prior notice. The API, database schema, and core functionality may change significantly between versions. While we welcome testing and feedback, this version is not recommended for production use.
