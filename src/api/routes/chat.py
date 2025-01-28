@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from openai import AsyncOpenAI
-from supabase import Client, create_client
+from src.core.services.db_service import DatabaseService
 from src.api.models.chat import ChatRequest, ChatResponse
 from src.api.dependencies.auth import verify_token
 from src.core.services.chat_service import ChatService
 from src.core.services.embedding import EmbeddingService
 from src.config.settings import settings
+from src.utils.logging import logger
 
 router = APIRouter()
 
@@ -17,13 +18,9 @@ async def get_services():
         base_url=settings.OPENAI_API_BASE
     )
     
-    supabase_client = create_client(
-        settings.SUPABASE_URL,
-        settings.SUPABASE_SERVICE_KEY
-    )
-    
+    db_service = DatabaseService()
     embedding_service = EmbeddingService(openai_client)
-    chat_service = ChatService(openai_client, supabase_client, embedding_service)
+    chat_service = ChatService(openai_client, db_service, embedding_service)
     
     return chat_service
 
@@ -34,7 +31,6 @@ async def chat_endpoint(
     chat_service: ChatService = Depends(get_services)
 ):
     try:
-        # Retrieve relevant chunks
         chunks = await chat_service.retrieve_relevant_chunks(
             request.query, 
             request.version
@@ -46,10 +42,8 @@ async def chat_endpoint(
                 detail="No relevant documentation found"
             )
         
-        # Prepare context and sources
         context, sources = chat_service.prepare_context(chunks)
         
-        # Generate response (non-streaming)
         response = await chat_service.generate_response(
             query=request.query,
             context=context,
@@ -69,19 +63,19 @@ async def chat_endpoint(
         )
         
     except Exception as e:
+        logger.error(f"Error in chat endpoint: {e}")
         raise HTTPException(
             status_code=500,
             detail=str(e)
         )
 
-@router.post("/stream")
+@router.post("/stream", response_class=StreamingResponse)
 async def stream_endpoint(
     request: ChatRequest,
     authenticated: bool = Depends(verify_token),
     chat_service: ChatService = Depends(get_services)
 ):
     try:
-        # Retrieve relevant chunks
         chunks = await chat_service.retrieve_relevant_chunks(
             request.query, 
             request.version
@@ -93,10 +87,8 @@ async def stream_endpoint(
                 detail="No relevant documentation found"
             )
         
-        # Prepare context and sources
         context, sources = chat_service.prepare_context(chunks)
         
-        # Generate streaming response
         stream = await chat_service.generate_response(
             query=request.query,
             context=context,
@@ -105,13 +97,21 @@ async def stream_endpoint(
         )
         
         async def generate():
-            async for chunk in stream:
-                if chunk.choices[0].delta.content:
-                    yield chunk.choices[0].delta.content
+            try:
+                async for chunk in stream:
+                    if chunk.choices[0].delta.content:
+                        yield chunk.choices[0].delta.content
+            except Exception as e:
+                logger.error(f"Error in stream generation: {e}")
+                raise
         
-        return StreamingResponse(generate(), media_type="text/event-stream")
+        return StreamingResponse(
+            generate(),
+            media_type="text/event-stream"
+        )
         
     except Exception as e:
+        logger.error(f"Error in stream endpoint: {e}")
         raise HTTPException(
             status_code=500,
             detail=str(e)

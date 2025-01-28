@@ -6,21 +6,18 @@ from typing import Dict, Any, Set
 from datetime import datetime, timezone
 from src.core.services.embedding import EmbeddingService
 from src.utils.logging import logger
-from supabase import Client
+from src.core.services.db_service import DatabaseService
 from .markdown_converter import MarkdownConverter
 from src.config.settings import settings
 
 
-# Get table name from settings
-TABLE_NAME = settings.SUPABASE_TABLE
-
 class DocumentProcessor:
     def __init__(
-        self, 
-        supabase_client: Client,
+        self,
+        db_service: DatabaseService,
         embedding_service: EmbeddingService
     ):
-        self.supabase_client = supabase_client
+        self.db_service = db_service
         self.embedding_service = embedding_service
         self.markdown_converter = MarkdownConverter()
         self.progress_file = Path("processing_progress.json")
@@ -169,7 +166,7 @@ class DocumentProcessor:
 
     async def _insert_chunk(self, chunk_data: Dict[str, Any]):
         try:
-            result = self.supabase_client.table(TABLE_NAME).insert(chunk_data).execute()
+            result = await self.db_service.insert_document(chunk_data)
             logger.info(
                 f"Inserted chunk {chunk_data['chunk_number']} "
                 f"(version {chunk_data['metadata']['version_str']}): "
@@ -252,69 +249,36 @@ class DocumentProcessor:
                 **chunk["metadata"]
             }
             
-            # Try to find and delete existing records
             try:
-                logger.info(f"Searching for existing records for file: {filename}, version: {version_str}, chunk: {chunk_number}")
-                    
-                records_to_delete = []
-                    
-                # Search by metadata to catch any potential duplicates
-                metadata_result = self.supabase_client.table(TABLE_NAME)\
-                    .select("*")\
-                    .filter("metadata->>filename", "eq", filename)\
-                    .filter("metadata->>version_str", "eq", version_str)\
-                    .execute()
-                    
-                if metadata_result.data:
-                    # Add any new IDs not already in the list
-                    new_ids = [r["id"] for r in metadata_result.data if r["id"] not in records_to_delete]
-                    records_to_delete.extend(new_ids)
-                    logger.info(f"Found {len(new_ids)} additional records by metadata matching")
+                # Delete existing records based on metadata
+                await self.db_service.delete_document_by_metadata(filename, version_str)
                 
-                if records_to_delete:
-                    # Delete all found records
-                    logger.info(f"Attempting to delete {len(records_to_delete)} records")
-                    delete_result = self.supabase_client.table(TABLE_NAME)\
-                        .delete()\
-                        .in_("id", records_to_delete)\
-                        .execute()
-                    
-                    logger.info(f"Successfully deleted {len(delete_result.data)} records")
-                    
-                    # Add a delay after deletion
-                    await asyncio.sleep(1)
-                    
-                else:
-                    logger.info("No existing records found to delete")
+                # Prepare record data
+                document = {
+                    "url": documentation_url,
+                    "chunk_number": chunk_number,
+                    "title": title,
+                    "content": chunk["content"],
+                    "metadata": metadata,
+                    "embedding": embedding,
+                    "version": version
+                }
+                
+                # Insert new record
+                result = await self.db_service.insert_document(document)
+                
+                logger.info(
+                    f"Processed chunk {chunk_number} "
+                    f"(version {metadata['version_str']}): "
+                    f"{title}"
+                )
+                
+                return result
                 
             except Exception as e:
-                logger.warning(f"Delete operation failed: {e}")
+                logger.warning(f"Operation failed: {e}")
                 raise
-            
-            # Prepare record data
-            record_data = {
-                "url": documentation_url,  # Now only contains the URL string
-                "chunk_number": chunk_number,
-                "title": title,
-                "content": chunk["content"],
-                "metadata": metadata,
-                "embedding": embedding,
-                "version": version
-            }
-            
-            # Insert new record
-            result = self.supabase_client.table(TABLE_NAME)\
-                .insert(record_data)\
-                .execute()
-            
-            logger.info(
-                f"Processed chunk {chunk_number} "
-                f"(version {metadata['version_str']}): "
-                f"{title}"
-            )
-            
-            return result
-            
+                
         except Exception as e:
             logger.error(f"Error processing chunk: {e}")
             raise
@@ -327,17 +291,8 @@ class DocumentProcessor:
     ) -> None:
         """Delete an existing record if it exists."""
         try:
-            # Execute delete operation
-            self.supabase_client.table(TABLE_NAME)\
-                .delete()\
-                .eq("url", url)\
-                .eq("chunk_number", chunk_number)\
-                .eq("version", version)\
-                .execute()
-            
-            # Add a small delay after deletion
-            await asyncio.sleep(0.5)
-            
+            await self.db_service.delete_document(url, chunk_number, version)
+            await asyncio.sleep(0.5)  # Keep the delay for safety
             logger.debug(f"Deleted existing record for URL: {url}, chunk: {chunk_number}, version: {version}")
         except Exception as e:
             raise Exception(f"Error in delete operation: {e}")

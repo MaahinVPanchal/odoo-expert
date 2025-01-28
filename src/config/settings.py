@@ -12,18 +12,20 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str
     OPENAI_API_BASE: str
     LLM_MODEL: str = "gpt-4o"
-    
-    # Supabase Settings
-    SUPABASE_URL: str
-    SUPABASE_SERVICE_KEY: str
-    SUPABASE_TABLE: str
+
+    # PostgreSQL Settings
+    POSTGRES_USER: str = "postgres"  # Changed default to match your config
+    POSTGRES_PASSWORD: str = "postgres"  # Changed default to match your config
+    POSTGRES_DB: str = "odoo_expert"  # Changed default to match your config
+    POSTGRES_HOST: str = "localhost"  # Changed default to localhost
+    POSTGRES_PORT: int = 5433  # Changed default to match your config
     
     # Security
     BEARER_TOKEN: str = ""
     CORS_ORIGINS: str = "*"
     
     # Chat Settings
-    SYSTEM_PROMPT: str =  """You are an expert in Odoo development and architecture.
+    SYSTEM_PROMPT: str = """You are an expert in Odoo development and architecture.
     Answer the question using the provided documentation chunks and conversation history.
     In your answer:
     1. Start with a clear, direct response to the question

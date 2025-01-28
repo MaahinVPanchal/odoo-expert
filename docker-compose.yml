@@ -1,31 +1,53 @@
 services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-odoo_expert}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/sqls/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   odoo-expert:
     image: mfydev/odoo-expert:latest
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "8000:8000"  # API port
       - "8501:8501"  # UI port
     env_file:
       - .env
     environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}  # Fixed defaults
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-odoo_expert}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432  # This should be 5432 since we're inside Docker network
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_API_BASE=${OPENAI_API_BASE}
-      - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
-      - SUPABASE_TABLE=${SUPABASE_TABLE}
       - LLM_MODEL=${LLM_MODEL:-gpt-4}
       - BEARER_TOKEN=${BEARER_TOKEN}
       - CORS_ORIGINS=${CORS_ORIGINS:-*}
     volumes:
-      - ./raw_data:/app/raw_data
-      - ./markdown:/app/markdown
+      - ./raw_data:/app/raw_data:rw
+      - ./markdown:/app/markdown:rw
       - logs_volume:/app/logs:rw
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD", "python", "docker/healthcheck.py"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 15s  # Added start period
 
 volumes:
+  postgres_data:
   logs_volume:
