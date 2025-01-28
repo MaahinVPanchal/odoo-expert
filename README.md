@@ -115,17 +115,8 @@ Assuming Supabase table name is `odoo_docs`. If you have a different table name,
     # Process documents
     docker compose run --rm odoo-expert python main.py process-docs ./markdown
     ```
-6. Database indexing: Run the following command to create the search index by using Supabase's SQL editor.
-    ```sql
-    SET maintenance_work_mem = '128MB';
-    CREATE INDEX idx_odoo_docs_version ON odoo_docs (version);
-
-    CREATE INDEX idx_odoo_docs_embedding ON odoo_docs
-    USING ivfflat (embedding vector_cosine_ops)
-    WITH (lists = 328);
-    ```
-7. Access the UI at port 8501 and the API at port 8000
-8. Docker compose will automatically pull the latest changes and update the system once a day, or you can manually update by running the following command:
+6. Access the UI at port 8501 and the API at port 8000
+7. Docker compose will automatically pull the latest changes and update the system once a day, or you can manually update by running the following command:
     ```bash
     docker compose run --rm odoo-expert python main.py check-updates
     ```
