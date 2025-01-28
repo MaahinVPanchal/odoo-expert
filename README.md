@@ -265,8 +265,7 @@ curl -X POST "http://localhost:8000/api/stream" \
 
 ## Future Roadmap
 
-1. Allow set versions in the env and run the pipe with those versions automatically.
-2. Add more API endpoints for more advanced features, like streaming chat.
+Please see github issues for the future roadmap.
 
 ## What Are the Potential Applications?
 
