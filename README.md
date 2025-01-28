@@ -69,7 +69,7 @@ The system operates through a pipeline of data processing and serving steps:
 ## Prerequisites
 
 - Docker and Docker Compose
-- Supabase: Both selfhosted version and hosted version are supported
+- PostgreSQL with pgvector extension
 - OpenAI API access
 - Git
 
@@ -77,6 +77,7 @@ if you want to do source install, you need to install the following dependencies
 
 - Python 3.10+
 - Pandoc
+- PostgreSQL with pgvector extension
 
 ## Installation & Usage
 
@@ -89,10 +90,12 @@ Assuming Supabase table name is `odoo_docs`. If you have a different table name,
    ```bash
     OPENAI_API_KEY=your_openai_api_key
     OPENAI_API_BASE=https://api.openai.com/v1
-    SUPABASE_SERVICE_KEY=your_supabase_service_key
-    SUPABASE_URL=your_supabase_url
-    SUPABASE_TABLE=your_supabase_table_name
-    LLM_MODEL=gpt-4o
+    POSTGRES_USER=postgres
+    POSTGRES_PASSWORD=your_postgres_password
+    POSTGRES_DB=odoo_expert
+    POSTGRES_HOST=db
+    POSTGRES_PORT=5432
+    LLM_MODEL=gpt-4
     BEARER_TOKEN=comma_separated_bearer_tokens
     CORS_ORIGINS=comma_separated_cors_origins
    ```
@@ -129,48 +132,59 @@ Assuming Supabase table name is `odoo_docs`. If you have a different table name,
 
 ### Source Install
 
-1. Pull Odoo documentation:
+1. Install PostgreSQL and pgvector:
+    ```bash
+    # For Debian/Ubuntu
+    sudo apt-get install postgresql postgresql-contrib
+    
+    # Install pgvector extension
+    git clone https://github.com/pgvector/pgvector.git
+    cd pgvector
+    make
+    make install
+    ```
+
+2. Create database and enable extension:
+    ```sql
+    CREATE DATABASE odoo_expert;
+    \c odoo_expert
+    CREATE EXTENSION vector;
+    ```
+
+3. Set up the database schema by running the SQL commands in `src/sqls/init.sql`.
+
+4. Pull Odoo documentation:
     ```bash
     chmod +x pull_rawdata.sh
     ./pull_rawdata.sh
     ```
-2. Convert RST to Markdown:
+
+5. Convert RST to Markdown:
     ```bash
     python main.py process-raw --raw-dir ./raw_data --output-dir ./markdown
     ```
-3. Set up database: Run `src/sqls/create_table_schema.sql` to create the table and `src/sqls/search_odoo_docs.sql` to create the search function by using Supabase's SQL editor.
-4. Process and embed documents:
+
+6. Process and embed documents:
     ```bash
     python main.py process-docs ./markdown
     ```
-5. Launch the chat interface:
+
+7. Launch the chat interface:
     ```bash
     python main.py serve --mode ui
     ```
-6. Launch the API:
+
+8. Launch the API:
     ```bash
     python main.py serve --mode api
     ```
-7. Database indexing: Run the following command to create the search index by using Supabase's SQL editor.
-    ```sql
-    SET maintenance_work_mem = '128MB';
-    CREATE INDEX idx_odoo_docs_version ON odoo_docs (version);
 
-    CREATE INDEX idx_odoo_docs_embedding ON odoo_docs
-    USING ivfflat (embedding vector_cosine_ops)
-    WITH (lists = 328);
-    ```
-8. Access the UI at port 8501 and the API at port 8000
-9. To sync with the latest changes in the Odoo documentation, run the following command:
+9. Access the UI at port 8501 and the API at port 8000
+
+10. To sync with the latest changes in the Odoo documentation, run:
     ```bash
     python main.py check-updates
     ```
-
-This command will:
-1. Scan RST files for changes across all supported Odoo versions
-2. Convert modified RST files to markdown
-3. Update the embeddings database for changed content
-4. Maintain a local cache to track file changes
 
 ## API Endpoints
 
