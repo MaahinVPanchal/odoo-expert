@@ -89,10 +89,13 @@ class StreamlitUI:
                 )
                 
                 async for chunk in response:
-                    if chunk.choices[0].delta.content:
-                        full_response += chunk.choices[0].delta.content
-                        response_placeholder.markdown(full_response)
-                
+                    # Add more robust error checking
+                    if chunk and hasattr(chunk, 'choices') and chunk.choices:
+                        delta = chunk.choices[0].delta
+                        if hasattr(delta, 'content') and delta.content:
+                            full_response += delta.content
+                            response_placeholder.markdown(full_response)
+                    
                 if full_response:
                     # Add to conversation history only if we got a valid response
                     st.session_state.conversation_history.append({
@@ -105,12 +108,16 @@ class StreamlitUI:
                     
             except Exception as e:
                 logger.error(f"Error generating response: {e}")
-                response_placeholder.markdown("Sorry, I encountered an error while generating the response. Please try again.")
+                import traceback
+                logger.error(traceback.format_exc())  # This will give you a full stack trace
+                response_placeholder.markdown(f"Sorry, I encountered an error: {str(e)}")
                 
         except Exception as e:
             logger.error(f"Error processing query: {e}")
+            import traceback
+            logger.error(traceback.format_exc())  # This will give you a full stack trace
             with st.chat_message("assistant"):
-                st.error("An error occurred while processing your query. Please try again.")
+                st.error(f"An error occurred while processing your query: {str(e)}")
 
     async def main(self):
         try:
