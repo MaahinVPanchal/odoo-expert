@@ -265,7 +265,7 @@ curl -X POST "http://localhost:8000/api/stream" \
 
 ## Future Roadmap
 
-Please see github issues for the future roadmap.
+Please see [GitHub Issues](https://github.com/MFYDev/odoo-expert/issues) for the future roadmap.
 
 ## What Are the Potential Applications?
 
