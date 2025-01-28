@@ -81,7 +81,7 @@ if you want to do source install, you need to install the following dependencies
 
 ## Installation & Usage
 
-Assuming Supabase table name is `odoo_docs`. If you have a different table name, please update the table name in the following SQL commands.
+Assuming the table name is `odoo_docs`. If you have a different table name, please update the table name in the following SQL commands.
 
 ### Docker Compose Install
 
@@ -103,8 +103,7 @@ Assuming Supabase table name is `odoo_docs`. If you have a different table name,
     ```bash
     docker-compose up -d
     ```
-4. Set up database: Run `src/sqls/create_table_schema.sql` to create the table and `src/sqls/search_odoo_docs.sql` to create the search function by using Supabase's SQL editor.
-5. Pull the raw data and write to your supabase table:
+4. Pull the raw data and write to your PostgreSQL's table:
     ```bash
     # Pull documentation
     docker compose run --rm odoo-expert ./pull_rawdata.sh
@@ -115,8 +114,8 @@ Assuming Supabase table name is `odoo_docs`. If you have a different table name,
     # Process documents
     docker compose run --rm odoo-expert python main.py process-docs ./markdown
     ```
-6. Access the UI at port 8501 and the API at port 8000
-7. Docker compose will automatically pull the latest changes and update the system once a day, or you can manually update by running the following command:
+5. Access the UI at port 8501 and the API at port 8000
+6. Docker compose will automatically pull the latest changes and update the system once a day, or you can manually update by running the following command:
     ```bash
     docker compose run --rm odoo-expert python main.py check-updates
     ```
