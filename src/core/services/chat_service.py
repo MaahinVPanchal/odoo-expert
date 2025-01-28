@@ -1,7 +1,7 @@
 from typing import List, Dict, Optional, Tuple
 from openai import AsyncOpenAI
-from supabase import Client
 from src.core.services.embedding import EmbeddingService
+from src.core.services.db_service import DatabaseService
 from src.config.settings import settings
 from src.utils.logging import logger
 
@@ -9,11 +9,11 @@ class ChatService:
     def __init__(
         self,
         openai_client: AsyncOpenAI,
-        supabase_client: Client,
+        db_service: DatabaseService,
         embedding_service: EmbeddingService
     ):
         self.openai_client = openai_client
-        self.supabase_client = supabase_client
+        self.db_service = db_service
         self.embedding_service = embedding_service
 
     async def retrieve_relevant_chunks(
@@ -22,23 +22,14 @@ class ChatService:
         version: int,
         limit: int = 6
     ) -> List[Dict]:
-        """Retrieve relevant documentation chunks based on query similarity."""
         try:
-            # Get query embedding
             query_embedding = await self.embedding_service.get_embedding(query)
-            
-            # Search similar documents
-            result = self.supabase_client.rpc(
-                'search_odoo_docs',
-                {
-                    'query_embedding': query_embedding,
-                    'version_num': version,
-                    'match_limit': limit
-                }
-            ).execute()
-            
-            return result.data[:limit] if result.data else []
-            
+            chunks = await self.db_service.search_documents(
+                query_embedding,
+                version,
+                limit
+            )
+            return chunks
         except Exception as e:
             logger.error(f"Error retrieving chunks: {e}")
             raise

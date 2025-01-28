@@ -8,27 +8,20 @@ from src.processing.document_processor import DocumentProcessor
 from src.processing.markdown_converter import MarkdownConverter
 from src.processing.file_update_handler import FileUpdateHandler
 from src.core.services.embedding import EmbeddingService
+from src.core.services.db_service import DatabaseService
 from src.config.settings import settings
 from openai import AsyncOpenAI
-from supabase import create_client
 from src.utils.logging import logger
 
 async def process_documents(base_dir: str):
-    """Process markdown documents to embeddings
-
-    Args:
-        base_dir (str): _description_
-    """
+    """Process markdown documents to embeddings"""
     openai_client = AsyncOpenAI(
         api_key=settings.OPENAI_API_KEY,
         base_url=settings.OPENAI_API_BASE
     )
-    supabase_client = create_client(
-        settings.SUPABASE_URL,
-        settings.SUPABASE_SERVICE_KEY
-    )
+    db_service = DatabaseService()
     embedding_service = EmbeddingService(openai_client)
-    processor = DocumentProcessor(supabase_client, embedding_service)
+    processor = DocumentProcessor(db_service, embedding_service)
     await processor.process_directory(base_dir)
 
 async def process_raw_data(raw_dir: str, output_dir: str, process_docs: bool = False):
@@ -62,13 +55,9 @@ async def check_updates(raw_dir: str, markdown_dir: str):
         base_url=settings.OPENAI_API_BASE
     )
     
-    supabase_client = create_client(
-        settings.SUPABASE_URL,
-        settings.SUPABASE_SERVICE_KEY
-    )
-    
+    db_service = DatabaseService()
     embedding_service = EmbeddingService(openai_client)
-    document_processor = DocumentProcessor(supabase_client, embedding_service)
+    document_processor = DocumentProcessor(db_service, embedding_service)
     markdown_converter = MarkdownConverter()
     
     update_handler = FileUpdateHandler(
