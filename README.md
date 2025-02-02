@@ -98,6 +98,8 @@ Assuming the table name is `odoo_docs`. If you have a different table name, plea
     LLM_MODEL=gpt-4
     BEARER_TOKEN=comma_separated_bearer_tokens
     CORS_ORIGINS=comma_separated_cors_origins
+    ODOO_VERSIONS=16.0,17.0,18.0
+    SYSTEM_PROMPT="Your custom system prompt here"
    ```
 3. Run the following command:
     ```bash
@@ -105,7 +107,7 @@ Assuming the table name is `odoo_docs`. If you have a different table name, plea
     ```
 4. Pull the raw data and write to your PostgreSQL's table:
     ```bash
-    # Pull documentation
+    # Pull documentation (uses ODOO_VERSIONS from .env)
     docker compose run --rm odoo-expert ./pull_rawdata.sh
 
     # Convert RST to Markdown
@@ -143,35 +145,41 @@ Assuming the table name is `odoo_docs`. If you have a different table name, plea
 
 3. Set up the database schema by running the SQL commands in `src/sqls/init.sql`.
 
-4. Pull Odoo documentation:
+4. Create a `.env` file from the template and configure your environment variables:
     ```bash
-    chmod +x pull_rawdata.sh
-    ./pull_rawdata.sh
+    cp .env.example .env
+    # Edit .env with your settings including ODOO_VERSIONS and SYSTEM_PROMPT
     ```
 
-5. Convert RST to Markdown:
+5. Pull Odoo documentation:
+    ```bash
+    chmod +x pull_rawdata.sh
+    ./pull_rawdata.sh  # Will use ODOO_VERSIONS from .env
+    ```
+
+6. Convert RST to Markdown:
     ```bash
     python main.py process-raw --raw-dir ./raw_data --output-dir ./markdown
     ```
 
-6. Process and embed documents:
+7. Process and embed documents:
     ```bash
     python main.py process-docs ./markdown
     ```
 
-7. Launch the chat interface:
+8. Launch the chat interface:
     ```bash
     python main.py serve --mode ui
     ```
 
-8. Launch the API:
+9. Launch the API:
     ```bash
     python main.py serve --mode api
     ```
 
-9. Access the UI at port 8501 and the API at port 8000
+10. Access the UI at port 8501 and the API at port 8000
 
-10. To sync with the latest changes in the Odoo documentation, run:
+11. To sync with the latest changes in the Odoo documentation, run:
     ```bash
     python main.py check-updates
     ```

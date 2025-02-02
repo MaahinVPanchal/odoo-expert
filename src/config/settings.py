@@ -14,37 +14,21 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "gpt-4o"
 
     # PostgreSQL Settings
-    POSTGRES_USER: str = "postgres"  # Changed default to match your config
-    POSTGRES_PASSWORD: str = "postgres"  # Changed default to match your config
-    POSTGRES_DB: str = "odoo_expert"  # Changed default to match your config
-    POSTGRES_HOST: str = "localhost"  # Changed default to localhost
-    POSTGRES_PORT: int = 5433  # Changed default to match your config
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_DB: str = "odoo_expert"
+    POSTGRES_HOST: str = "localhost"
+    POSTGRES_PORT: int = 5432
     
     # Security
     BEARER_TOKEN: str = ""
     CORS_ORIGINS: str = "*"
     
+    # Odoo Settings
+    ODOO_VERSIONS: str = "16.0,17.0,18.0"
+    
     # Chat Settings
-    SYSTEM_PROMPT: str = """You are an expert in Odoo development and architecture.
-    Answer the question using the provided documentation chunks and conversation history.
-    In your answer:
-    1. Start with a clear, direct response to the question
-    2. Support your answer with specific references to the source documents
-    3. Use markdown formatting for readability
-    4. When citing information, mention which Source (1, 2, etc.) it came from
-    5. If different sources provide complementary information, explain how they connect
-    6. Consider the conversation history for context
-    
-    Format your response like this:
-    
-    **Answer:**
-    [Your main answer here]
-    
-    **Sources Used:**
-    - Source 1: Title chunk['url']
-    - Source 2: Title chunk['url']
-    - etc if needed
-    """
+    SYSTEM_PROMPT: str
     
     # Paths
     PROJECT_ROOT: Path = Path(__file__).parent.parent.parent
@@ -61,6 +45,10 @@ class Settings(BaseSettings):
         if self.CORS_ORIGINS == "*":
             return ["*"]
         return [x.strip() for x in self.CORS_ORIGINS.split(',') if x.strip()]
+    
+    @property
+    def odoo_versions_list(self) -> List[str]:
+        return [x.strip() for x in self.ODOO_VERSIONS.split(',') if x.strip()]
     
     class Config:
         env_file = ".env"

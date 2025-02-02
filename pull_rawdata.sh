@@ -1,9 +1,22 @@
 #!/bin/bash
 
-# Define the repository and the versions
+# Load environment variables from .env file
+if [ -f .env ]; then
+    source .env
+else
+    echo "Error: .env file not found. Please create one from .env.example"
+    exit 1
+fi
+
+# Check if ODOO_VERSIONS is set
+if [ -z "$ODOO_VERSIONS" ]; then
+    echo "Error: ODOO_VERSIONS not set in .env file"
+    exit 1
+fi
+
+# Define the repository
 REPO_URL="https://github.com/odoo/documentation.git"
 REMOTE_NAME="odoo-docs"
-VERSIONS=("16.0" "17.0" "18.0")
 BASE_DIR="raw_data/versions"
 
 # Initialize the main repository directory if it doesn't exist
@@ -12,8 +25,13 @@ mkdir -p $BASE_DIR
 # Navigate to the base directory
 cd $BASE_DIR || exit 1
 
+# Convert comma-separated versions to array
+IFS=',' read -ra VERSIONS <<< "$ODOO_VERSIONS"
+
 # Loop through each version
 for VERSION in "${VERSIONS[@]}"; do
+    # Trim whitespace from version
+    VERSION=$(echo "$VERSION" | tr -d '[:space:]')
     echo "Processing version $VERSION..."
 
     # Check if the version directory exists and contains a git repository
