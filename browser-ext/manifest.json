@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Odoo Expert",
   "version": "1.0",
-  "description": "Enhances Odoo documentation search with AI-powered responses, made by Fanyang Meng, GitHub Repo: https://github.com/mfydev/odoo-expert",
+  "description": "Enhances Odoo documentation search with AI-powered responses to help users find relevant information quickly and efficiently.",
   "permissions": [
     "activeTab",
     "storage"
