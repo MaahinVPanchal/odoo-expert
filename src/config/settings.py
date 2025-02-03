@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     # Paths
     PROJECT_ROOT: Path = Path(__file__).parent.parent.parent
     LOGS_DIR: Path = PROJECT_ROOT / "logs"
+    RAW_DATA_DIR: str = "raw_data"
+    MARKDOWN_DATA_DIR: str = "markdown"
     
     @property
     def bearer_tokens_list(self) -> List[str]:

@@ -90,10 +90,6 @@ if __name__ == "__main__":
     
     # Process commands
     process_raw_parser = subparsers.add_parser('process-raw', help='Process raw RST files')
-    process_raw_parser.add_argument('--raw-dir', default='raw_data',
-                                  help='Directory containing raw RST files')
-    process_raw_parser.add_argument('--output-dir', default='markdown',
-                                  help='Directory for processed markdown files')
     process_raw_parser.add_argument('--process-docs', action='store_true',
                                   help='Process documents after conversion')
     
@@ -103,10 +99,6 @@ if __name__ == "__main__":
     # Add check-updates command
     check_updates_parser = subparsers.add_parser('check-updates', 
                                                 help='Check and process updated files')
-    check_updates_parser.add_argument('--raw-dir', default='raw_data',
-                                    help='Directory containing raw RST files')
-    check_updates_parser.add_argument('--markdown-dir', default='markdown',
-                                    help='Directory for processed markdown files')
     
     args = parser.parse_args()
     
@@ -116,10 +108,10 @@ if __name__ == "__main__":
         elif args.mode == 'ui':
             subprocess.run(["streamlit", "run", "src/ui/streamlit_app.py"])
     elif args.command == 'process-raw':
-        asyncio.run(process_raw_data(args.raw_dir, args.output_dir, args.process_docs))
+        asyncio.run(process_raw_data(settings.RAW_DATA_DIR, settings.MARKDOWN_DATA_DIR, args.process_docs))
     elif args.command == 'process-docs':
         asyncio.run(process_documents(args.dir))
     elif args.command == 'check-updates':
-        asyncio.run(check_updates(args.raw_dir, args.markdown_dir))
+        asyncio.run(check_updates(settings.RAW_DATA_DIR, settings.MARKDOWN_DATA_DIR))
     else:
         parser.print_help()
