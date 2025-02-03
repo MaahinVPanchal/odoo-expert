@@ -109,7 +109,13 @@ if __name__ == "__main__":
     elif args.command == 'process-raw':
         asyncio.run(process_raw_data(settings.RAW_DATA_DIR, settings.MARKDOWN_DATA_DIR, args.process_docs))
     elif args.command == 'process-docs':
-        asyncio.run(process_documents(settings.MARKDOWN_DATA_DIR))
+        async def run_sequential():
+            # First run check-updates to generate file cache
+            await check_updates(settings.RAW_DATA_DIR, settings.MARKDOWN_DATA_DIR)
+            # Then process the documents
+            await process_documents(settings.MARKDOWN_DATA_DIR)
+        
+        asyncio.run(run_sequential())
     elif args.command == 'check-updates':
         asyncio.run(check_updates(settings.RAW_DATA_DIR, settings.MARKDOWN_DATA_DIR))
     else:
