@@ -90,16 +90,20 @@ Assuming the table name is `odoo_docs`. If you have a different table name, plea
    ```bash
     OPENAI_API_KEY=your_openai_api_key
     OPENAI_API_BASE=https://api.openai.com/v1
-    POSTGRES_USER=postgres
-    POSTGRES_PASSWORD=your_postgres_password
-    POSTGRES_DB=odoo_expert
+    POSTGRES_USER=odoo_expert
+    POSTGRES_PASSWORD=your_secure_password
+    POSTGRES_DB=odoo_expert_db
     POSTGRES_HOST=db
     POSTGRES_PORT=5432
-    LLM_MODEL=gpt-4
+    LLM_MODEL=gpt-4o
     BEARER_TOKEN=comma_separated_bearer_tokens
-    CORS_ORIGINS=comma_separated_cors_origins
+    CORS_ORIGINS=http://localhost:3000,http://localhost:8501,https://www.odoo.com
     ODOO_VERSIONS=16.0,17.0,18.0
-    SYSTEM_PROMPT="Your custom system prompt here"
+    SYSTEM_PROMPT=same as .env.example
+
+# Data Directories
+RAW_DATA_DIR=raw_data
+MARKDOWN_DATA_DIR=markdown
    ```
 3. Run the following command:
     ```bash
@@ -270,6 +274,24 @@ curl -X POST "http://localhost:8000/api/stream" \
     "conversation_history": []
 }'
 ```
+
+## Browser Extension Setup
+
+The project includes a browser extension that enhances the Odoo documentation search experience with AI-powered responses. To set up the extension:
+
+1. Open Chrome/Edge and navigate to the extensions page:
+   - Chrome: `chrome://extensions/`
+   - Edge: `edge://extensions/`
+
+2. Enable "Developer mode" in the top right corner
+
+3. Click "Load unpacked" and select the `browser-ext` folder from this project
+
+4. The Odoo Expert extension icon should appear in your browser toolbar
+
+5. Make sure your local API server is running (port 8000)
+
+The extension will now enhance the search experience on Odoo documentation pages by providing AI-powered responses alongside the traditional search results.
 
 ## Future Roadmap
 
