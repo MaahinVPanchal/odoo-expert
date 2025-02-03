@@ -1,0 +1,82 @@
+#ai-response-section {
+    margin: 20px 0 !important;
+    padding: 20px !important;
+    background: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 4px !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    position: relative !important;
+    z-index: 1000 !important;
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+#ai-response-section h2 {
+    margin: 0 0 15px 0 !important;
+    padding: 0 !important;
+    color: #212529 !important;
+    font-size: 1.5em !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+}
+
+#ai-response-content {
+    margin-top: 10px !important;
+    padding: 15px !important;
+    background: white !important;
+    border: 1px solid #e9ecef !important;
+    border-radius: 4px !important;
+    color: #212529 !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+}
+
+#ai-response-content pre {
+    background: #f8f9fa !important;
+    padding: 12px !important;
+    border-radius: 3px !important;
+    overflow-x: auto !important;
+    border: 1px solid #e9ecef !important;
+    margin: 10px 0 !important;
+}
+
+#ai-response-content code {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+    font-size: 13px !important;
+    padding: 2px 4px !important;
+    background: #f8f9fa !important;
+    border-radius: 2px !important;
+}
+
+#ai-response-content p {
+    margin: 0 0 10px 0 !important;
+    line-height: 1.6 !important;
+}
+
+#ai-response-content ul, 
+#ai-response-content ol {
+    margin: 10px 0 10px 20px !important;
+    padding: 0 !important;
+}
+
+#ai-response-content li {
+    margin: 5px 0 !important;
+    line-height: 1.6 !important;
+}
+
+#ai-response-content a {
+    color: #007bff !important;
+    text-decoration: none !important;
+}
+
+#ai-response-content a:hover {
+    text-decoration: underline !important;
+}
+
+#ai-response-content blockquote {
+    margin: 10px 0 !important;
+    padding: 10px 20px !important;
+    border-left: 4px solid #e9ecef !important;
+    background: #f8f9fa !important;
+}

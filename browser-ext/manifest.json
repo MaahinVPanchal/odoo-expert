@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Odoo Expert Assistant",
+  "version": "1.0",
+  "description": "Enhances Odoo documentation search with AI-powered responses",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost:*/*",
+    "https://www.odoo.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.odoo.com/documentation/*/search.html*",
+        "https://www.odoo.com/documentation/*/search.html?*"
+      ],
+      "js": [
+        "marked.min.js",
+        "contentScript.js"
+      ],
+      "css": ["styles.css"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [{
+    "resources": ["styles.css"],
+    "matches": ["https://www.odoo.com/*"]
+  }],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src http://localhost:* https://www.odoo.com/"
+  }
+}
