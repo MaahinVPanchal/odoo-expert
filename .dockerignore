@@ -16,3 +16,4 @@ logs/
 .coverage
 .pytest_cache/
 *.log
+browser-ext/
