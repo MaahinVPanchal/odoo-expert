@@ -114,10 +114,10 @@ Assuming the table name is `odoo_docs`. If you have a different table name, plea
     docker compose run --rm odoo-expert ./pull_rawdata.sh
 
     # Convert RST to Markdown
-    docker compose run --rm odoo-expert python main.py process-raw --raw-dir ./raw_data --output-dir ./markdown
+    docker compose run --rm odoo-expert python main.py process-raw
 
     # Process documents
-    docker compose run --rm odoo-expert python main.py process-docs ./markdown
+    docker compose run --rm odoo-expert python main.py process-docs
     ```
 5. Access the UI at port 8501 and the API at port 8000
 6. Docker compose will automatically pull the latest changes and update the system once a day, or you can manually update by running the following command:
@@ -162,12 +162,12 @@ Assuming the table name is `odoo_docs`. If you have a different table name, plea
 
 6. Convert RST to Markdown:
     ```bash
-    python main.py process-raw --raw-dir ./raw_data --output-dir ./markdown
+    python main.py process-raw
     ```
 
 7. Process and embed documents:
     ```bash
-    python main.py process-docs ./markdown
+    python main.py process-docs
     ```
 
 8. Launch the chat interface:
