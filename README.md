@@ -100,10 +100,9 @@ Assuming the table name is `odoo_docs`. If you have a different table name, plea
     CORS_ORIGINS=http://localhost:3000,http://localhost:8501,https://www.odoo.com
     ODOO_VERSIONS=16.0,17.0,18.0
     SYSTEM_PROMPT=same as .env.example
-
-# Data Directories
-RAW_DATA_DIR=raw_data
-MARKDOWN_DATA_DIR=markdown
+    # Data Directories
+    RAW_DATA_DIR=raw_data
+    MARKDOWN_DATA_DIR=markdown
    ```
 3. Run the following command:
     ```bash
