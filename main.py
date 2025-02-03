@@ -94,7 +94,6 @@ if __name__ == "__main__":
                                   help='Process documents after conversion')
     
     process_docs_parser = subparsers.add_parser('process-docs', help='Process markdown documents')
-    process_docs_parser.add_argument('dir', help='Directory containing markdown files to process')
 
     # Add check-updates command
     check_updates_parser = subparsers.add_parser('check-updates', 
@@ -110,7 +109,7 @@ if __name__ == "__main__":
     elif args.command == 'process-raw':
         asyncio.run(process_raw_data(settings.RAW_DATA_DIR, settings.MARKDOWN_DATA_DIR, args.process_docs))
     elif args.command == 'process-docs':
-        asyncio.run(process_documents(args.dir))
+        asyncio.run(process_documents(settings.MARKDOWN_DATA_DIR))
     elif args.command == 'check-updates':
         asyncio.run(check_updates(settings.RAW_DATA_DIR, settings.MARKDOWN_DATA_DIR))
     else:
