@@ -99,7 +99,11 @@ async def stream_endpoint(
         async def generate():
             try:
                 async for chunk in stream:
-                    if chunk.choices[0].delta.content:
+                    if (hasattr(chunk, 'choices') and 
+                        chunk.choices and 
+                        hasattr(chunk.choices[0], 'delta') and 
+                        hasattr(chunk.choices[0].delta, 'content') and 
+                        chunk.choices[0].delta.content):
                         yield chunk.choices[0].delta.content
             except Exception as e:
                 logger.error(f"Error in stream generation: {e}")
