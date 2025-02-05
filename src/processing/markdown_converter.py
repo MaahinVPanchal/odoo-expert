@@ -32,7 +32,7 @@ class MarkdownConverter:
         base_path = Path(base_dir)
         # If output_dir is not provided, use the default path
         output_path = Path(output_dir if output_dir is not None else base_path / 'markdown')
-        versions = settings.kb_versions_list
+        versions = settings.odoo_versions_list
         
         for version in versions:
             source_dir = base_path / 'versions' / version / 'content'

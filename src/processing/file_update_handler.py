@@ -87,7 +87,7 @@ class FileUpdateHandler:
 
         # Scan current files
         logger.info("Starting file scan...")
-        for version in settings.kb_versions_list:
+        for version in settings.odoo_versions_list:
             version_path = Path(raw_dir) / 'versions' / version / 'content'
             if not version_path.exists():
                 continue
