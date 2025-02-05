@@ -41,7 +41,7 @@ class ChatService:
         
         for i, chunk in enumerate(chunks, 1):
             source_info = (
-                f"Source {i}:\n"
+                f"Context:\n"
                 f"Document: {chunk['url']}\n"
                 f"Title: {chunk['title']}\n"
                 f"Content: {chunk['content']}"
