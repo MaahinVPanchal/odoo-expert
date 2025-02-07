@@ -41,6 +41,7 @@ services:
       - ./raw_data:/app/raw_data:rw
       - ./markdown:/app/markdown:rw
       - logs_volume:/app/logs:rw
+      - ./.env:/app/.env:ro
     healthcheck:
       test: ["CMD", "python", "docker/healthcheck.py"]
       interval: 30s
