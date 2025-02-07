@@ -1,9 +1,7 @@
 # Odoo Expert
 RAG-Powered Odoo Documentation Assistant
 
-Updates & Demo Video
-
-Please refer to: https://fanyangmeng.blog/introducing-odoo-expert/
+Intro, Updates & Demo Video: https://fanyangmeng.blog/introducing-odoo-expert/
 
 > ⚠️ PLEASE NOTE:
 > This project is not sponsored or endrosed by Odoo S.A. or Odoo Inc. yet. I am developing this project as a personal project with the intention of helping the Odoo community on my own.
