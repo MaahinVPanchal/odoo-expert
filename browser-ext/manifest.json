@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Odoo Expert",
   "version": "1.0",
-  "description": "Enhances Odoo documentation search with AI-powered responses to help users find relevant information quickly and efficiently.",
+  "description": "AI-powered search enhancement for Odoo documentation. Requires Odoo-Expert API: https://github.com/MFYDev/odoo-expert.",
   "permissions": [
     "activeTab",
     "storage"
