@@ -296,9 +296,11 @@ Please see [GitHub Issues](https://github.com/MFYDev/odoo-expert/issues) for the
 ## Support
 If you encounter any issues or have questions, please:
 
-Check the known issues
-Create a new issue in the GitHub repository
-Provide detailed information about your environment and the problem
+- Check the known issues
+- Create a new issue in the GitHub repository
+- Provide detailed information about your environment and the problem
+
+Please do not directly email me for support, as I will not respond to it at all, let's keep the discussion in the GitHub issues for clarity and transparency.
 
 ## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
