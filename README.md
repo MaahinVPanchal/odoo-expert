@@ -300,7 +300,7 @@ If you encounter any issues or have questions, please:
 - Create a new issue in the GitHub repository
 - Provide detailed information about your environment and the problem
 
-Please do not directly email me for support, as I will not respond to it at all, let's keep the discussion in the GitHub issues for clarity and transparency.
+> ⚠️ **Please do not directly email me for support, as I will not respond to it at all, let's keep the discussion in the GitHub issues for clarity and transparency.**
 
 ## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
