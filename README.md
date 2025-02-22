@@ -2,7 +2,10 @@
 RAG-Powered Odoo Documentation Assistant
 
 Intro, Updates & Demo Video: https://fanyangmeng.blog/introducing-odoo-expert/
-Browser Extension: https://microsoftedge.microsoft.com/addons/detail/odoo-expert/mnmapgdlgncmdiofbdacjilfcafgapci
+
+Browser extension now available for Chrome and Edge!
+
+Check it out: https://microsoftedge.microsoft.com/addons/detail/odoo-expert/mnmapgdlgncmdiofbdacjilfcafgapci
 
 > ⚠️ PLEASE NOTE:
 > This project is not sponsored or endrosed by Odoo S.A. or Odoo Inc. yet. I am developing this project as a personal project with the intention of helping the Odoo community on my own.
