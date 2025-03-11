@@ -7,7 +7,7 @@ from src.api.app import app
 from src.processing.document_processor import DocumentProcessor
 from src.processing.markdown_converter import MarkdownConverter
 from src.processing.file_update_handler import FileUpdateHandler
-from src.core.services.embedding import EmbeddingService
+from src.core.services.embedding import NomicEmbeddingService
 from src.core.services.db_service import DatabaseService
 from src.config.settings import settings
 from openai import AsyncOpenAI
@@ -15,48 +15,23 @@ from src.utils.logging import logger
 
 async def process_documents(base_dir: str):
     """Process markdown documents to embeddings"""
-    openai_client = AsyncOpenAI(
-        api_key=settings.OPENAI_API_KEY,
-        base_url=settings.OPENAI_API_BASE
-    )
     db_service = DatabaseService()
-    embedding_service = EmbeddingService(openai_client)
+    embedding_service = NomicEmbeddingService()
     processor = DocumentProcessor(db_service, embedding_service)
     await processor.process_directory(base_dir)
 
 async def process_raw_data(raw_dir: str, output_dir: str, process_docs: bool = False):
-    """Process raw RST files to markdown and optionally process documents
-    
-    Args:
-        raw_dir (str): Directory containing raw RST files
-        output_dir (str): Output directory for markdown files
-        process_docs (bool): Whether to process documents after conversion
-    """
-    # Step 1: Convert RST to Markdown
+    """Process raw RST files to markdown and optionally process documents"""
     converter = MarkdownConverter()
     converter.process_directory(raw_dir, output_dir)
     
-    # Step 2: Process markdown files to documents (optional)
     if process_docs:
         await process_documents(output_dir)
 
 async def check_updates(raw_dir: str, markdown_dir: str):
-    """Check for updates in raw data and process changed files.
-
-    Args:
-        raw_dir (str): Raw data directory
-        markdown_dir (str): Markdown data directory
-
-    Returns:
-        Added, modified, removed files
-    """
-    openai_client = AsyncOpenAI(
-        api_key=settings.OPENAI_API_KEY,
-        base_url=settings.OPENAI_API_BASE
-    )
-    
+    """Check for updates and process changed files."""
     db_service = DatabaseService()
-    embedding_service = EmbeddingService(openai_client)
+    embedding_service = NomicEmbeddingService()
     document_processor = DocumentProcessor(db_service, embedding_service)
     markdown_converter = MarkdownConverter()
     
@@ -77,27 +52,20 @@ async def check_updates(raw_dir: str, markdown_dir: str):
     return added, modified, removed
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(description='Odoo Documentation Assistant')
     subparsers = parser.add_subparsers(dest='command', help='Commands')
     
-    # Server command
     server_parser = subparsers.add_parser('serve', help='Run the server')
-    server_parser.add_argument('--mode', choices=['api', 'ui'], required=True,
-                             help='Run mode: api for FastAPI server or ui for Streamlit interface')
-    server_parser.add_argument('--host', default='0.0.0.0', help='Host to run the server on')
-    server_parser.add_argument('--port', type=int, default=8000, help='Port to run the server on')
+    server_parser.add_argument('--mode', choices=['api', 'ui'], required=True)
+    server_parser.add_argument('--host', default='0.0.0.0')
+    server_parser.add_argument('--port', type=int, default=8000)
     
-    # Process commands
     process_raw_parser = subparsers.add_parser('process-raw', help='Process raw RST files')
-    process_raw_parser.add_argument('--process-docs', action='store_true',
-                                  help='Process documents after conversion')
+    process_raw_parser.add_argument('--process-docs', action='store_true')
     
     process_docs_parser = subparsers.add_parser('process-docs', help='Process markdown documents')
 
-    # Add check-updates command
-    check_updates_parser = subparsers.add_parser('check-updates', 
-                                                help='Check and process updated files')
+    check_updates_parser = subparsers.add_parser('check-updates', help='Check and process updated files')
     
     args = parser.parse_args()
     
@@ -110,9 +78,7 @@ if __name__ == "__main__":
         asyncio.run(process_raw_data(settings.RAW_DATA_DIR, settings.MARKDOWN_DATA_DIR, args.process_docs))
     elif args.command == 'process-docs':
         async def run_sequential():
-            # First run check-updates to generate file cache
             await check_updates(settings.RAW_DATA_DIR, settings.MARKDOWN_DATA_DIR)
-            # Then process the documents
             await process_documents(settings.MARKDOWN_DATA_DIR)
         
         asyncio.run(run_sequential())
@@ -120,3 +86,5 @@ if __name__ == "__main__":
         asyncio.run(check_updates(settings.RAW_DATA_DIR, settings.MARKDOWN_DATA_DIR))
     else:
         parser.print_help()
+
+# Let me know if you’d like me to optimize any other part or add more parallelism! 🚀

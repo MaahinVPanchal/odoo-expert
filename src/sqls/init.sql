@@ -25,7 +25,7 @@ USING gin (metadata);
 
 -- Create search function
 CREATE OR REPLACE FUNCTION search_odoo_docs(
-    query_embedding vector(1536),
+    query_embedding vector(768),
     version_num integer,
     match_limit integer
 )

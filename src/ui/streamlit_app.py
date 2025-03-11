@@ -9,10 +9,10 @@ import asyncio
 import streamlit as st
 from datetime import datetime
 from src.core.services.chat_service import ChatService
-from src.core.services.embedding import EmbeddingService
+from src.core.services.embedding import NomicEmbeddingService  # Updated to use Nomic
 from src.config.settings import settings
 from src.utils.logging import logger
-from openai import AsyncOpenAI
+#from openai import AsyncOpenAI
 from src.core.services.db_service import DatabaseService
 
 class StreamlitUI:
@@ -22,7 +22,7 @@ class StreamlitUI:
             base_url=settings.OPENAI_API_BASE
         )
         self.db_service = DatabaseService()
-        self.embedding_service = EmbeddingService(self.openai_client)
+        self.embedding_service = NomicEmbeddingService()  # Use Nomic for embeddings
         self.chat_service = ChatService(
             self.openai_client,
             self.db_service,
@@ -65,7 +65,7 @@ class StreamlitUI:
                 response_placeholder = st.empty()
                 response_placeholder.markdown("Searching documentation...")
 
-            # Get relevant chunks
+            # Get relevant chunks using Nomic embeddings
             chunks = await self.chat_service.retrieve_relevant_chunks(query, version)
             
             if not chunks:
@@ -76,7 +76,7 @@ class StreamlitUI:
             # Show processing message
             response_placeholder.markdown("Generating response...")
             
-            # Prepare context and generate response
+            # Prepare context and generate response using OpenAI
             context, sources = self.chat_service.prepare_context(chunks)
             
             full_response = ""
